@@ -1,14 +1,18 @@
 declare module 'veritone-redux-common' {
   import { Action, Reducer } from 'redux';
-  import { Config, AppState } from 'veritone-redux-common/models';
+  import { ConfigState, AppStore } from 'veritone-redux-common/stores';
 
+  
   export namespace modules {
     export namespace config {
-      const reducer: Reducer<Config>;
-      const namespace: 'config';
+      type Namespace = 'config';
+      type ConfigStoreSlice = Pick<AppStore, Namespace>;
+
+      const reducer: Reducer<ConfigState>;
+      const namespace: Namespace;
       const SET_CONFIG: 'vtn/config/SET_CONFIG';
-      function getConfig(state: AppState): Config;
-      function setConfig(config: Config): Action<'vtn/config/SET_CONFIG'> & { payload: Config };
+      function getConfig(state: ConfigStoreSlice): ConfigState;
+      function setConfig(config: ConfigState): Action<'vtn/config/SET_CONFIG'> & { payload: ConfigState };
     }
   }
 }

@@ -4,13 +4,15 @@
 declare module 'veritone-redux-common' {
   import { Reducer, Middleware } from 'redux';
   import { GetContextEffect } from 'redux-saga/effects';
-  import { CallApiRequest } from 'veritone-redux-common/models';
+  import { CallApiRequest, ApiCallingAction } from 'veritone-redux-common/models';
 
   export namespace helpers {
-    function callGraphQLApi<S, V extends Record<string, any>, R>(req: CallApiRequest<S, V>): Promise<R>;
-    function fetchGraphQLApi<R, O>(): Promise<O>;
+    function callGraphQLApi<S, R>(req: CallApiRequest<S>): Promise<R>;
+    function fetchGraphQLApi<S, R>(req: CallApiRequest<S>): Promise<R>;
+
     function createReducer<S>(initialState: S, handlers: Record<string, Reducer<S>>): Reducer<S>;
     function reduceReducers<S>(...reducers: Array<Reducer<S>>): Reducer<S>;
+
     const promiseMiddleware: {
       main(): Middleware;
       WAIT_FOR_ACTION: symbol;
@@ -19,20 +21,19 @@ declare module 'veritone-redux-common' {
       CALLBACK_ERROR_ARGUMENT: symbol;
     };
 
-    function createReducer<S>(initialState: S, handlers: { [handler: string]: Reducer<S> }): Reducer;
-    function reduceReducers<S>(...reducers: Reducer<S>[]): Reducer<S>;
-    function handleApiCall(call: {
-      types: [string, string, string];
-    }): {
-      reducer: Reducer;
+    function handleApiCall<S>(
+      req: Pick<ApiCallingAction<S>['@@redux-api-middleware/RSAA'], 'types'>,
+    ): {
+      reducer: Reducer<S>;
       selectors: {
-        fetchingStatus: <S>(localState: S, optionalRequestId: string) => GetContextEffect;
-        fetchingStatusByRequestId: <S>(localState: S) => GetContextEffect;
-        fetchingFailureMessage: <S>(localState: S, optionalRequestId: string) => GetContextEffect;
-        fetchingFailureMessagesByRequestId: <S>(localState: S) => GetContextEffect;
+        fetchingStatus: (localState: S, optionalRequestId: string) => GetContextEffect;
+        fetchingStatusByRequestId: (localState: S) => GetContextEffect;
+        fetchingFailureMessage: (localState: S, optionalRequestId: string) => GetContextEffect;
+        fetchingFailureMessagesByRequestId: (localState: S) => GetContextEffect;
       };
       _key: string;
     };
+
     const fetchingStatus: {
       fetching: 'FETCHING';
       failure: 'FAILURE';

@@ -2,7 +2,7 @@ declare module 'veritone-react-common' {
   import React from 'react';
 
   interface AppContainerPropTypes {
-    children: React.ReactChildren;
+    children: React.ReactNode;
     leftOffset: number;
     topBarOffset: boolean;
     appBarOffset: boolean;

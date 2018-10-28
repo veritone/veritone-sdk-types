@@ -2,10 +2,14 @@ declare module 'veritone-redux-common' {
   import { Reducer, AnyAction } from 'redux';
   import { GetContextEffect } from 'redux-saga/effects';
   import { Application } from 'veritone-types';
-  import { User, UserState, AppState } from 'veritone-redux-common/models';
+  import { User, CallApiRequest, ApiCallingAction } from 'veritone-redux-common/models';
+  import { UserState, AppStore } from 'veritone-redux-common/stores';
 
   export namespace modules {
     export namespace user {
+      type Namespace = 'user';
+      type UserStoreSlice = Pick<AppStore, Namespace>;
+
       const FETCH_USER: 'vtn/user/FETCH_USER';
       const FETCH_USER_SUCCESS: 'vtn/user/FETCH_USER_SUCCESS';
       const FETCH_USER_FAILURE: 'vtn/user/FETCH_USER_FAILURE';
@@ -35,17 +39,25 @@ declare module 'veritone-redux-common' {
       const UPDATE_CURRENT_USER_PROFILE_FAILURE: 'vtn/user/UPDATE_CURRENT_USER_PROFILE_FAILURE';
 
       const reducer: Reducer<UserState>;
-      const namespace: 'user';
+      const namespace: Namespace;
 
-      function resetUserPasswordFetchingStatus<S>(localState: S, optionalRequestId: string): GetContextEffect;
-      function resetUserPasswordFailureMessage<S>(localState: S, optionalRequestId: string): GetContextEffect;
-      function updateCurrentUserProfileFetchingStatus<S>(localState: S, optionalRequestId: string): GetContextEffect;
-      function updateCurrentUserProfileFailureMessage<S>(localState: S, optionalRequestId: string): GetContextEffect;
+      function resetUserPasswordFetchingStatus(localState: UserStoreSlice, optionalRequestId: string): GetContextEffect;
+      function resetUserPasswordFailureMessage(localState: UserStoreSlice, optionalRequestId: string): GetContextEffect;
+      function updateCurrentUserProfileFetchingStatus(
+        localState: UserStoreSlice,
+        optionalRequestId: string,
+      ): GetContextEffect;
+      function updateCurrentUserProfileFailureMessage(
+        localState: UserStoreSlice,
+        optionalRequestId: string,
+      ): GetContextEffect;
 
-      function fetchUser(): {};
-      function login(req: { userName: string; password: string }): {};
-      function refreshApiToken(): {};
-      function fetchEnabledApps(): {};
+      function fetchUser(): ApiCallingAction<UserStoreSlice>;
+      function login(req: { userName: string; password: string }): ApiCallingAction<UserStoreSlice>;
+      function logout(): ApiCallingAction<UserStoreSlice>;
+      function refreshApiToken(): ApiCallingAction<UserStoreSlice>;
+      function fetchEnabledApps(): ApiCallingAction<UserStoreSlice>;
+
       function resetUserPassword<S, R>(
         email: string,
       ): (dispatch: (action: AnyAction) => void, getState: () => S) => Promise<R>;
@@ -54,20 +66,21 @@ declare module 'veritone-redux-common' {
         readonly lastName: string;
         readonly imageUrl: string;
       }): (dispatch: (action: AnyAction) => void, getState: () => S) => Promise<R>;
-      function isLoggingIn(state: AppState): boolean;
-      function loginFailed(state: AppState): boolean;
-      function loginFailureMessage(state: AppState): string;
-      function isFetching(state: AppState): boolean;
-      function fetchingFailed(state: AppState): boolean;
-      function selectUser(state: AppState): User;
-      function selectUserOrganizationId(state: AppState): string;
-      function selectUserOrganizationKvp(state: AppState): Readonly<Record<string, string>>;
-      function enabledAppsFailedLoading(state: AppState): boolean;
-      function isFetchingApps(state: AppState): boolean;
-      function enabledAppsFailureMessage(state: AppState): string;
-      function selectEnabledApps(state: AppState): ReadonlyArray<Application>;
-      function userIsAuthenticated(state: AppState): boolean;
-      function hasFeature(state: AppState, featureName: string): boolean;
+
+      function isLoggingIn(state: UserStoreSlice): boolean;
+      function loginFailed(state: UserStoreSlice): boolean;
+      function loginFailureMessage(state: UserStoreSlice): string;
+      function isFetching(state: UserStoreSlice): boolean;
+      function fetchingFailed(state: UserStoreSlice): boolean;
+      function selectUser(state: UserStoreSlice): User;
+      function selectUserOrganizationId(state: UserStoreSlice): string;
+      function selectUserOrganizationKvp(state: UserStoreSlice): Readonly<Record<string, string>>;
+      function enabledAppsFailedLoading(state: UserStoreSlice): boolean;
+      function isFetchingApps(state: UserStoreSlice): boolean;
+      function enabledAppsFailureMessage(state: UserStoreSlice): string;
+      function selectEnabledApps(state: UserStoreSlice): ReadonlyArray<Application>;
+      function userIsAuthenticated(state: UserStoreSlice): boolean;
+      function hasFeature(state: UserStoreSlice, featureName: string): boolean;
     }
   }
 }

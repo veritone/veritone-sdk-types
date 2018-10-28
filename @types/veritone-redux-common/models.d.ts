@@ -1,13 +1,12 @@
 declare module 'veritone-redux-common/models' {
   import { AnyAction } from 'redux';
-  import { Application, Engine, EngineCategory } from 'veritone-types';
   import { modules } from 'veritone-redux-common';
+  import { AppStore } from 'veritone-redux-common/stores';
 
-  export interface CallApiRequest<S = AppState, V extends Record<string, any> = {}> {
+  export interface CallApiRequest<S = any> {
     readonly actionTypes: [string, string, string];
     readonly query: string;
-    readonly variables: V;
-    readonly body?: FormData;
+    readonly variables: Record<string, string>;
     dispatch: (action: AnyAction) => void;
     getState: () => S;
     bailout?: (state: S) => boolean;
@@ -15,69 +14,17 @@ declare module 'veritone-redux-common/models' {
     readonly requestId?: string;
   }
 
-  export interface AppState {
-    readonly [modules.auth.namespace]: AuthState;
-    readonly [modules.config.namespace]: Partial<Config>;
-    readonly [modules.confirmation.namespace]: ConfirmationState;
-    readonly [modules.engine.namespace]: EngineState;
-    readonly [modules.uiState.namespace]: UiState;
-    readonly [modules.user.namespace]: UserState;
-  }
-
-  export interface AuthState {
-    readonly OAuthToken: null | string;
-    readonly OAuthErrorCode: null | string;
-    readonly OAuthErrorDescription: null | string;
-    readonly sessionToken: null | string;
-  }
-
-  export interface ConfirmationState {
-    confirmations: { readonly [id: string]: any | undefined };
-  }
-
-  export interface EngineState {
-    readonly enginesById: { [id: string]: Engine };
-    readonly isFetching: boolean;
-    readonly fetchingFailed: boolean;
-    readonly engineCategories: ReadonlyArray<EngineCategory>;
-    readonly isFetchingCategories: boolean;
-    readonly fetchingCategoriesFailed: boolean;
-  }
-
-  export interface UiState {
-    readonly [key: string]: any | undefined;
-  }
-
-  export interface UserState {
-    readonly user: User;
-    readonly isFetching: boolean;
-    readonly fetchingFailed: boolean;
-    readonly isLoggingIn: boolean;
-    readonly loginFailed: boolean;
-    readonly loginFailureMessage?: string;
-    readonly isFetchingApplications: boolean;
-    readonly fetchApplicationsFailed: boolean;
-    readonly fetchApplicationsFailureMessage?: string;
-    readonly enabledApps: ReadonlyArray<Application>;
-  }
-
-  export interface Config {
-    readonly apiRoot: string;
-    readonly switchAppRoute: string;
-    readonly loginRoute: string;
-    readonly graphQLEndpoint: string;
-    readonly OAuthClientID: string;
-    readonly faceRecognitionCategory: string;
-    readonly redactEngineId: string;
-    readonly eventSchemaId: string;
-    readonly licensePlatesRecognitionEngineId: string;
-    readonly downloadEngineId: string;
-    readonly segmentWriteKey: string;
-    readonly opticalTrackingEngine: string;
-    readonly useOAuthGrant: boolean;
-    readonly redactDetectionEngineId: string;
-    readonly webstreamAdapterEngineId: string;
-    readonly dtoSdoSchemaId: string;
+  export interface ApiCallingAction<S = any> {
+    '@@redux-api-middleware/RSAA': {
+      readonly types: [string, string, string];
+      readonly method?: 'GET' | 'HEAD' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'OPTIONS';
+      readonly headers?: Record<string, string> | (() => Record<string, string>);
+      readonly credentials?: 'include' | 'same-origin' | 'omit';
+      readonly body?: string | FormData;
+      bailout?: boolean | ((state: S) => boolean);
+      endpoint?: (state: AppStore[modules.config.Namespace]) => string;
+      options?: Record<string, string> | (() => Record<string, string>);
+    };
   }
 
   export interface Organization {

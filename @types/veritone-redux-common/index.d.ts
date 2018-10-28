@@ -6,6 +6,7 @@
 /// <reference path="./modules-engine.d.ts"/>
 /// <reference path="./modules-uiState.d.ts"/>
 /// <reference path="./modules-user.d.ts"/>
+/// <reference path="./stores.d.ts"/>
 
 declare module 'veritone-redux-common' {
 
