@@ -1,5 +1,5 @@
 declare module 'veritone-redux-common/models' {
-  import { AnyAction } from 'redux';
+  import { AnyAction, Action } from 'redux';
   import { modules } from 'veritone-redux-common';
   import { AppStore } from 'veritone-redux-common/stores';
 
@@ -14,7 +14,7 @@ declare module 'veritone-redux-common/models' {
     readonly requestId?: string;
   }
 
-  export interface ApiCallingAction<S = any> {
+  export interface ApiCallingAction<S = any> extends Action<'@@redux-api-middleware/RSAA'> {
     '@@redux-api-middleware/RSAA': {
       readonly types: [string, string, string];
       readonly method?: 'GET' | 'HEAD' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'OPTIONS';
