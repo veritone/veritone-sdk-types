@@ -2,7 +2,6 @@ declare module 'veritone-redux-common' {
   import { Action, Reducer } from 'redux';
   import { ConfigState, AppStore } from 'veritone-redux-common/stores';
 
-  
   export namespace modules {
     export namespace config {
       type Namespace = 'config';

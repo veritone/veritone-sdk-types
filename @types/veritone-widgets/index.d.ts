@@ -19,4 +19,7 @@ declare module 'veritone-widgets' {
     'data-veritone-component': string;
   }
   const AppBar: React.PureComponent<AppBarPropTypes>;
+
+  const MediaPlayer: React.PureComponent<any>;
+  const MediaPlayerControlBar: React.PureComponent<any>;
 }

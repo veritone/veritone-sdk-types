@@ -1,6 +1,9 @@
 declare module 'veritone-react-common' {
   import React from 'react';
 
+  const appBarHeight: number;
+  const topBarHeight: number;
+
   interface AppContainerPropTypes {
     children: React.ReactNode;
     leftOffset: number;
@@ -13,4 +16,8 @@ declare module 'veritone-react-common' {
     };
   }
   const AppContainer: React.PureComponent<AppContainerPropTypes>;
+
+  const FilePicker: React.PureComponent<any>;
+  const ProgressDialog: React.PureComponent<any>;
+  const TobBar: React.PureComponent<any>;
 }
