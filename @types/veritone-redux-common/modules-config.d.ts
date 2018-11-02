@@ -9,9 +9,11 @@ declare module 'veritone-redux-common' {
 
       const reducer: Reducer<ConfigState>;
       const namespace: Namespace;
-      const SET_CONFIG: 'vtn/config/SET_CONFIG';
+
+      type SET_CONFIG = 'vtn/config/SET_CONFIG';
+
       function getConfig(state: ConfigStoreSlice): ConfigState;
-      function setConfig(config: ConfigState): Action<'vtn/config/SET_CONFIG'> & { payload: ConfigState };
+      function setConfig(config: ConfigState): Action<SET_CONFIG> & { payload: ConfigState };
     }
   }
 }

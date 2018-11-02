@@ -7,8 +7,23 @@ declare module 'veritone-redux-common' {
   import { CallApiRequest, ApiCallingAction } from 'veritone-redux-common/models';
 
   export namespace helpers {
-    function callGraphQLApi<S, R>(req: CallApiRequest<S>): Promise<R>;
-    function fetchGraphQLApi<S, R>(req: CallApiRequest<S>): Promise<R>;
+    function callGraphQLApi<
+      T1 extends string,
+      T2 extends string,
+      T3 extends string,
+      S = any,
+      V extends Record<string, any> = {},
+      R = any
+    >(req: CallApiRequest<T1, T2, T3, S, V>): Promise<R | undefined>;
+
+    function fetchGraphQLApi<
+      T1 extends string,
+      T2 extends string,
+      T3 extends string,
+      S = any,
+      V extends Record<string, any> = {},
+      R = any
+    >(req: CallApiRequest<T1, T2, T3, S, V>): Promise<R | undefined>;
 
     function createReducer<S>(initialState: S, handlers: Record<string, Reducer<S>>): Reducer<S>;
     function reduceReducers<S>(...reducers: Array<Reducer<S>>): Reducer<S>;

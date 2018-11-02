@@ -1,25 +1,55 @@
 declare module 'veritone-widgets' {
   import React from 'react';
+  import { Action } from 'redux';
+  import { modules } from 'veritone-redux-common';
+  import { ApiCallingAction } from 'veritone-redux-common/models';
+
+  export type OAuthGrantRequest = Pick<
+    OAuthLoginButtonPropTypes,
+    'OAuthURI' | 'responseType' | 'scope' | 'clientId' | 'redirectUri'
+  > & {
+    onSuccess: OAuthLoginButtonPropTypes['onAuthSuccess'];
+    onFailure: OAuthLoginButtonPropTypes['onAuthFailure'];
+  };
+
+  // ReturnType<OAuthLoginButtonPropTypes['onAuthSuccess']> | ReturnType<OAuthLoginButtonPropTypes['onAuthFailure']>;
 
   interface OAuthLoginButtonPropTypes {
-    readonly children: React.ReactNode;
-    readonly clientId: string;
-    readonly redicertUri: string;
+    readonly requestOAuthGrant: (
+      req: Pick<OAuthGrantRequest, 'OAuthURI' | 'onFailure' | 'onSuccess'>,
+    ) => Action<modules.auth.REQUEST_OAUTH_GRANT> & {
+      payload: Pick<OAuthGrantRequest, 'OAuthURI' | 'onFailure' | 'onSuccess'>;
+    };
+    readonly requestOAuthGrantImplicit: (
+      req: OAuthGrantRequest,
+    ) => Action<modules.auth.REQUEST_OAUTH_GRANT_IMPLICIT> & { payload: OAuthGrantRequest };
+
+    readonly userIsAuthenticated: boolean;
+    readonly mode?: 'implicit' | 'authCode';
+    readonly onAuthSuccess: () => void;
+    readonly onAuthFailure: () => void;
+    readonly apiRoot: string;
+    readonly OAuthURI?: string;
+    // required params for implicit grant only:
+    readonly responseType?: string;
+    readonly scope?: string;
+    readonly redirectUri?: string;
+    readonly clientId?: string;
   }
-  const OAuthLoginButton: React.PureComponent<OAuthLoginButtonPropTypes>;
+  class OAuthLoginButton extends React.Component<OAuthLoginButtonPropTypes> {}
 
   interface AppBarPropTypes {
-    readonly children: React.ReactNode;
-    appSwitcher: boolean;
-    profileMenu: boolean;
-    backgroundColor: string;
-    currentAppName: string;
-    onLogout: () => void;
-    elevation: number;
-    'data-veritone-component': string;
+    readonly children?: React.ReactNode;
+    readonly appSwitcher?: boolean;
+    readonly profileMenu?: boolean;
+    readonly backgroundColor?: string;
+    readonly currentAppName?: string;
+    readonly elevation?: number;
+    readonly 'data-veritone-component'?: string;
+    onLogout: () => ApiCallingAction<modules.user.UserStoreSlice>;
   }
-  const AppBar: React.PureComponent<AppBarPropTypes>;
+  class AppBar extends React.Component<AppBarPropTypes> {}
 
-  const MediaPlayer: React.PureComponent<any>;
-  const MediaPlayerControlBar: React.PureComponent<any>;
+  class MediaPlayer extends React.Component<any> {}
+  class MediaPlayerControlBar extends React.Component<any> {}
 }

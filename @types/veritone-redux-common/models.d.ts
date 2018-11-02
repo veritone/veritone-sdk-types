@@ -3,15 +3,34 @@ declare module 'veritone-redux-common/models' {
   import { modules } from 'veritone-redux-common';
   import { AppStore } from 'veritone-redux-common/stores';
 
-  export interface CallApiRequest<S = any> {
-    readonly actionTypes: [string, string, string];
+  export interface CallApiRequest<
+    T1 extends string,
+    T2 extends string,
+    T3 extends string,
+    S = any,
+    V extends Record<string, any> = {}
+  > {
+    readonly actionTypes: [T1, T2, T3];
     readonly query: string;
-    readonly variables: Record<string, string>;
+    readonly variables: V;
     dispatch: (action: AnyAction) => void;
     getState: () => S;
     bailout?: (state: S) => boolean;
     readonly operationName?: string;
     readonly requestId?: string;
+  }
+
+  export interface CallApiActionResponse<T2, P, M, V extends Record<string, any> = {}> extends Action<T2> {
+    type: T2;
+    payload: P;
+    error?: boolean;
+    meta: M & {
+      variables: V;
+      operationName?: string;
+      query: string;
+      _internalRequestId: string;
+      _shouldTrackRequestsIndividually: boolean;
+    };
   }
 
   export interface ApiCallingAction<S = any> extends Action<'@@redux-api-middleware/RSAA'> {

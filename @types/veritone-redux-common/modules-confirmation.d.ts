@@ -10,6 +10,7 @@ declare module 'veritone-redux-common' {
 
       const namespace: Namespace;
       const reducer: Reducer<ConfirmationState>;
+
       function confirmationRootSaga(): IterableIterator<AllEffect>;
     }
   }
