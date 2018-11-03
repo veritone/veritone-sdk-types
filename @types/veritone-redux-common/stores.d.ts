@@ -1,4 +1,3 @@
-
 declare module 'veritone-redux-common/stores' {
   import { AnyAction } from 'redux';
   import { Application, Engine, EngineCategory } from 'veritone-types';
