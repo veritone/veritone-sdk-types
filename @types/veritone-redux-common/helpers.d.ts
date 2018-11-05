@@ -49,6 +49,9 @@ declare module 'veritone-redux-common' {
       _key: string;
     };
 
+    function commonHeaders(state: modules.auth.AuthStoreSlice): Headers;
+    function getCredentialsMode(): 'include' | 'omit';
+
     const fetchingStatus: {
       fetching: 'FETCHING';
       failure: 'FAILURE';

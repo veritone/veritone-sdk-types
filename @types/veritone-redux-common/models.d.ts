@@ -21,15 +21,15 @@ declare module 'veritone-redux-common/models' {
   }
 
   export interface CallApiActionResponse<T2, P, M, V extends Record<string, any> = {}> extends Action<T2> {
-    type: T2;
-    payload: P;
-    error?: boolean;
-    meta: M & {
-      variables: V;
-      operationName?: string;
-      query: string;
-      _internalRequestId: string;
-      _shouldTrackRequestsIndividually: boolean;
+    readonly type: T2;
+    readonly payload: P;
+    readonly error?: boolean;
+    readonly meta: M & {
+      readonly variables: V;
+      readonly operationName?: string;
+      readonly query: string;
+      readonly _internalRequestId: string;
+      readonly _shouldTrackRequestsIndividually: boolean;
     };
   }
 

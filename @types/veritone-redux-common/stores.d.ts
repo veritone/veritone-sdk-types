@@ -15,7 +15,7 @@ declare module 'veritone-redux-common/stores' {
 
   export interface AuthState {
     readonly OAuthToken: null | string;
-    readonly OAuthErrorCode: null | string;
+    readonly OAuthErrorCode: null | modules.auth.OAUTH_ERROR_CODES;
     readonly OAuthErrorDescription: null | string;
     readonly sessionToken: null | string;
   }
@@ -25,7 +25,7 @@ declare module 'veritone-redux-common/stores' {
   }
 
   export interface EngineState {
-    readonly enginesById: { [id: string]: Engine };
+    readonly enginesById: { readonly [id: string]: Engine };
     readonly isFetching: boolean;
     readonly fetchingFailed: boolean;
     readonly engineCategories: ReadonlyArray<EngineCategory>;

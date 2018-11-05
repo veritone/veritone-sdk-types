@@ -15,37 +15,37 @@ declare module 'veritone-widgets' {
   // ReturnType<OAuthLoginButtonPropTypes['onAuthSuccess']> | ReturnType<OAuthLoginButtonPropTypes['onAuthFailure']>;
 
   interface OAuthLoginButtonPropTypes {
-    readonly requestOAuthGrant: (
+    requestOAuthGrant?: (
       req: Pick<OAuthGrantRequest, 'OAuthURI' | 'onFailure' | 'onSuccess'>,
-    ) => Action<modules.auth.REQUEST_OAUTH_GRANT> & {
+    ) => Action<typeof modules.auth.REQUEST_OAUTH_GRANT> & {
       payload: Pick<OAuthGrantRequest, 'OAuthURI' | 'onFailure' | 'onSuccess'>;
     };
-    readonly requestOAuthGrantImplicit: (
+    requestOAuthGrantImplicit?: (
       req: OAuthGrantRequest,
-    ) => Action<modules.auth.REQUEST_OAUTH_GRANT_IMPLICIT> & { payload: OAuthGrantRequest };
+    ) => Action<typeof modules.auth.REQUEST_OAUTH_GRANT_IMPLICIT> & { payload: OAuthGrantRequest };
 
-    readonly userIsAuthenticated: boolean;
-    readonly mode?: 'implicit' | 'authCode';
-    readonly onAuthSuccess: () => void;
-    readonly onAuthFailure: () => void;
-    readonly apiRoot: string;
-    readonly OAuthURI?: string;
+    userIsAuthenticated?: boolean;
+    onAuthSuccess?: () => void;
+    onAuthFailure?: () => void;
+    apiRoot?: string;
+    mode?: 'implicit' | 'authCode';
+    OAuthURI?: string;
     // required params for implicit grant only:
-    readonly responseType?: string;
-    readonly scope?: string;
-    readonly redirectUri?: string;
-    readonly clientId?: string;
+    responseType?: string;
+    scope?: string;
+    redirectUri?: string;
+    clientId?: string;
   }
   class OAuthLoginButton extends React.Component<OAuthLoginButtonPropTypes> {}
 
   interface AppBarPropTypes {
-    readonly children?: React.ReactNode;
-    readonly appSwitcher?: boolean;
-    readonly profileMenu?: boolean;
-    readonly backgroundColor?: string;
-    readonly currentAppName?: string;
-    readonly elevation?: number;
-    readonly 'data-veritone-component'?: string;
+    children?: React.ReactNode;
+    appSwitcher?: boolean;
+    profileMenu?: boolean;
+    backgroundColor?: string;
+    currentAppName?: string;
+    elevation?: number;
+    'data-veritone-component'?: string;
     onLogout: () => ApiCallingAction<modules.user.UserStoreSlice>;
   }
   class AppBar extends React.Component<AppBarPropTypes> {}

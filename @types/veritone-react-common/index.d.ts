@@ -7,14 +7,14 @@ declare module 'veritone-react-common' {
   const topBarHeight: number;
 
   interface AppContainerPropTypes {
-    readonly children?: React.ReactNode;
-    readonly leftOffset?: number;
-    readonly topBarOffset?: boolean;
-    readonly appBarOffset?: boolean;
-    readonly appFooterOffset?: 'short' | 'tall';
-    readonly classes?: {
-      readonly root?: string;
-      readonly inner?: string;
+    children?: React.ReactNode;
+    leftOffset?: number;
+    topBarOffset?: boolean;
+    appBarOffset?: boolean;
+    appFooterOffset?: 'short' | 'tall';
+    classes?: {
+      root?: string;
+      inner?: string;
     };
   }
   class AppContainer extends React.Component<AppContainerPropTypes> {}
@@ -31,13 +31,13 @@ declare module 'veritone-react-common' {
     selected?: boolean;
     rightMenu?: boolean;
     leftText?: string;
-    rightMenuItems: ReadonlyArray<{
+    rightMenuItems?: ReadonlyArray<{
       label?: string;
       handler: () => void;
     }>;
-    rightIconButtons: ReadonlyArray<React.ReactNode>;
-    onRequestOpenMenu: (event: MouseEvent) => void;
-    onClickBackButton: (event: MouseEvent) => void;
+    rightIconButtons?: ReadonlyArray<React.ReactNode>;
+    onRequestOpenMenu?: (event: MouseEvent) => void;
+    onClickBackButton?: (event: MouseEvent) => void;
   }
   class TopBar extends React.Component<TopBarPropTypes> {}
 
