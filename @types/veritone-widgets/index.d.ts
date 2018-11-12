@@ -46,7 +46,7 @@ declare module 'veritone-widgets' {
     currentAppName?: string;
     elevation?: number;
     'data-veritone-component'?: string;
-    onLogout: () => ApiCallingAction<modules.user.UserStoreSlice>;
+    onLogout?: () => ApiCallingAction<modules.user.UserStoreSlice>;
   }
   class AppBar extends React.Component<AppBarPropTypes> {}
 

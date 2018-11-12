@@ -42,7 +42,7 @@ declare module 'veritone-react-common' {
   class TopBar extends React.Component<TopBarPropTypes> {}
 
   namespace formComponents {
-    class Input extends React.Component<InputProps> {}
-    class Select extends React.Component<SelectProps> {}
+    const Input: (props: InputProps) => JSX.Element;
+    const Select: (props: SelectProps) => JSX.Element;
   }
 }
