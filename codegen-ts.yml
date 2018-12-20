@@ -1,0 +1,16 @@
+schema:
+  - "https://api.veritone.com/v3/graphql"
+documents: []
+config:
+  immutableTypes: true
+  avoidOptionals: true
+generates:
+  ./@types/veritone-types/index.d.ts:
+    config:
+      immutableTypes: true
+      avoidOptionals: true
+    plugins:
+      - "typescript-common"
+      - "typescript-client"
+      - "typescript-server"
+require: []

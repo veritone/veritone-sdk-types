@@ -25,7 +25,7 @@ declare module 'veritone-redux-common' {
       R = any
     >(req: CallApiRequest<T1, T2, T3, S, V>): Promise<R | undefined>;
 
-    function createReducer<S>(initialState: S, handlers: Record<string, Reducer<S>>): Reducer<S>;
+    function createReducer<S>(initialState: S, handlers: Record<string, (state: S) => S>): Reducer<S>;
     function reduceReducers<S>(...reducers: Array<Reducer<S>>): Reducer<S>;
 
     const promiseMiddleware: {
