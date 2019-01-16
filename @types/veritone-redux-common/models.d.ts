@@ -2,6 +2,7 @@ declare module 'veritone-redux-common/models' {
   import { AnyAction, Action } from 'redux';
   import { modules } from 'veritone-redux-common';
   import { AppStore } from 'veritone-redux-common/stores';
+  import { ApplicationPlatform, UserAcl } from 'veritone-types';
 
   export interface CallApiRequest<
     T1 extends string,
@@ -52,10 +53,36 @@ declare module 'veritone-redux-common/models' {
   }
 
   export interface User {
+    readonly token: string;
     readonly userId: string;
     readonly userName: string;
+    readonly email: string;
+    readonly lastLoggedIn: string | null;
+    readonly lastUpdated: string;
     readonly groups: ReadonlyArray<UserGroup>;
     readonly organization: Organization;
+    readonly kvp: {
+      readonly firstName?: string;
+      readonly lastName?: string;
+      readonly image?: string;
+      readonly [key: string]: string | undefined;
+    };
+    readonly passwordResetRequired: boolean;
+    readonly lastPasswordUpdated: string | null;
+    readonly hasPassword: boolean;
+    readonly applications: ReadonlyArray<string>;
+    readonly applicationPlatforms: {
+      readonly [guid: string]: ApplicationPlatform;
+    };
+    readonly authorizedOrganizationIds: ReadonlyArray<number>;
+    readonly permissionMasks: ReadonlyArray<number>;
+    readonly acls: ReadonlyArray<UserAcl> | null;
+    readonly trials: ReadonlyArray<unknown>;
+    readonly providerId: string | null;
+    readonly providerScreenName: string | null;
+    readonly providerUserId: string | null;
+    readonly mfaDefaultOption: unknown | null;
+    readonly tokenExpiration: string | null;
   }
 
   export interface UserGroup {

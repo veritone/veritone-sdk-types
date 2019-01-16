@@ -2,7 +2,8 @@
  * helpers namespace
  */
 declare module 'veritone-redux-common' {
-  import { Reducer, Middleware } from 'redux';
+  import { Reducer } from 'react';
+  import { Middleware } from 'redux';
   import { GetContextEffect } from 'redux-saga/effects';
   import { CallApiRequest, ApiCallingAction } from 'veritone-redux-common/models';
 
@@ -25,8 +26,10 @@ declare module 'veritone-redux-common' {
       R = any
     >(req: CallApiRequest<T1, T2, T3, S, V>): Promise<R | undefined>;
 
-    function createReducer<S>(initialState: S, handlers: Record<string, Reducer<S>>): Reducer<S>;
-    function reduceReducers<S>(...reducers: Array<Reducer<S>>): Reducer<S>;
+    interface FsaAction<P = any, M = any> extends Action { payload: P, meta: M };
+
+    function createReducer<S>(initialState: S, handlers: Record<string, Reducer<S, FsaAction>>): Reducer<S, FsaAction>;
+    function reduceReducers<S>(...reducers: Array<Reducer<S, FsaAction>>): Reducer<S, FsaAction>;
 
     const promiseMiddleware: {
       main(): Middleware;
