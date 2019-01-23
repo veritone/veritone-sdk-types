@@ -19,8 +19,25 @@ declare module 'veritone-react-common' {
   }
   class AppContainer extends React.Component<AppContainerPropTypes> {}
 
-  class FilePicker extends React.Component<AppContainerPropTypes> {}
-  class ProgressDialog extends React.Component<AppContainerPropTypes> {}
+  interface FilePickerPropTypes {
+    accept?: string[] | string;
+    multiple?: boolean;
+    width?: number;
+    height?: number;
+    onPickFiles?: Function;
+    onRequestClose?: Function;
+    allowUrlUpload?: boolean;
+  }
+  class FilePicker extends React.Component<FilePickerPropTypes> {}
+
+  interface ProgressDialogPropTypes {
+    percentComplete?: number;
+    progressMessage?: string;
+    height?: number;
+    width?: number;
+    completeStatus?: 'success' | 'failure' | 'warning';
+  }
+  class ProgressDialog extends React.Component<ProgressDialogPropTypes> {}
 
   interface TopBarPropTypes {
     appBarOffset?: boolean;
