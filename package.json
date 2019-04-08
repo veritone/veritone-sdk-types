@@ -1,7 +1,7 @@
 {
   "name": "veritone-types",
   "private": true,
-  "version": "0.6.0",
+  "version": "0.6.1",
   "description": "Typescript types for veritone-sdk packages and GraphQL API.",
   "main": "",
   "peerDependencies": {
