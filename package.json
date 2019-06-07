@@ -1,7 +1,7 @@
 {
   "name": "veritone-types",
   "private": true,
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "Typescript types for veritone-sdk packages and GraphQL API.",
   "main": "",
   "peerDependencies": {
@@ -12,22 +12,22 @@
   },
   "devDependencies": {
     "@material-ui/core": "^3.7.0",
-    "@types/graphql": "^14.0.3",
-    "@types/react": "^16.7.17",
+    "@types/graphql": "^14.2.0",
+    "@types/react": "^16.8.19",
     "@types/redux": "^3.6.0",
     "apollo-codegen": "^0.20.2",
-    "graphql": "^14.0.2",
-    "graphql-code-generator": "^0.15.1",
-    "graphql-codegen-typescript-client": "^0.15.1",
-    "graphql-codegen-typescript-common": "^0.15.1",
-    "graphql-codegen-typescript-server": "^0.15.1",
-    "prettier": "^1.15.3",
-    "react": "^16.7.0",
+    "graphql": "^14.3.1",
+    "graphql-code-generator": "^0.18.2",
+    "graphql-codegen-typescript-client": "^0.18.2",
+    "graphql-codegen-typescript-common": "^0.18.2",
+    "graphql-codegen-typescript-server": "^0.18.2",
+    "prettier": "^1.18.2",
+    "react": "^16.8.6",
     "redux": "^4.0.1",
     "redux-api-middleware-fixed": "^2.0.0",
     "redux-saga": "^0.16.2",
-    "tslint": "^5.12.0",
-    "typescript": "^3.2.2"
+    "tslint": "^5.17.0",
+    "typescript": "^3.5.1"
   },
   "scripts": {
     "compile": "yarn run tsc -p tsconfig.json --listfiles true",

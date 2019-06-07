@@ -50,22 +50,72 @@ declare module 'veritone-redux-common/stores' {
     readonly enabledApps: ReadonlyArray<Application>;
   }
 
-  export interface ConfigState {
+  type ConfigStateExt = Record<string, string | number | boolean | undefined | ConfigStateExt>;
+
+  export interface ConfigState<KV extends ConfigStateExt = {}> {
+    readonly nodeEnv: string;
+    readonly taskTablePartitionActiveDate: string;
+    readonly jobTablePartitionActiveDate: string;
+    readonly recordingAssetTablePartitionActiveDate: string;
+    readonly recordingWeekConfig: {
+      readonly weeklyIdsDateActive: string;
+      readonly weekOffset: number;
+    };
     readonly apiRoot: string;
     readonly switchAppRoute: string;
     readonly loginRoute: string;
-    readonly graphQLEndpoint: string;
-    readonly OAuthClientID: string;
-    readonly faceRecognitionCategory: string;
-    readonly redactEngineId: string;
-    readonly eventSchemaId: string;
-    readonly licensePlatesRecognitionEngineId: string;
-    readonly downloadEngineId: string;
+    readonly auth: {
+      readonly userTokenCookieName: string;
+    };
+    readonly mandrillAPIKey: string;
+    readonly publicDnsZoneName: string;
+    readonly jwt: {
+      readonly secret: string;
+      readonly ttl: string;
+    };
+    readonly segmentIoId: string;
+    readonly segmentIoKey: string;
     readonly segmentWriteKey: string;
-    readonly opticalTrackingEngine: string;
-    readonly useOAuthGrant: boolean;
-    readonly redactDetectionEngineId: string;
-    readonly webstreamAdapterEngineId: string;
-    readonly dtoSdoSchemaId: string;
+    readonly tdoRedactStateSchemaId: string;
+    readonly graphQLEndpoint: string;
+    readonly allowedOriginHosts: ReadonlyArray<string>;
+    readonly log: {
+      readonly console: {
+        readonly color: boolean;
+        readonly enable: boolean;
+        readonly level: string;
+      };
+      readonly file: boolean;
+      readonly fileName: string;
+      readonly level: string;
+      readonly 'log.console': boolean;
+      readonly 'log.consoleColor': boolean;
+      readonly 'log.file': boolean;
+      readonly 'log.level': string;
+      readonly 'log.profile': boolean;
+      readonly 'log.remote': boolean;
+      readonly loggly: {
+        readonly enable: boolean;
+      };
+      readonly profile: boolean;
+    };
+    readonly newRelic: {
+      readonly enable: boolean;
+      readonly errorCollectorIgnoreCodes: string;
+      readonly licenseKey: string;
+      readonly logLevel: string;
+    };
+    readonly requireComplexPassword: boolean;
+    readonly pendoKey: string;
+    readonly port: number;
+    readonly skipMiddleware: boolean;
+    readonly aiware: {
+      readonly enabled: boolean;
+      readonly organizationApplicationId: string;
+    };
+    readonly mediaFormats: ReadonlyArray<string>;
+    readonly services: {
+      readonly coreAdminUri: string;
+    };
   }
 }

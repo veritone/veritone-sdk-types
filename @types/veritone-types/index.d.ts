@@ -6,11 +6,11 @@ declare module 'veritone-types' {
     /** Match if the field value is `toDateTime` or earlier */
     readonly toDateTime: Maybe<DateTime>;
     /** Whether the toDateTime is inclusive or exclusive of the input timestamp */
-    readonly toDateTimeExclusive: Maybe<boolean>;
+    readonly toDateTimeExclusive: boolean;
     /** Match if the field value is `fromDateTime` or later */
     readonly fromDateTime: Maybe<DateTime>;
     /** Whether the fromDateTime is inclusive or exclusive of the input timestamp */
-    readonly fromDateTimeExclusive: Maybe<boolean>;
+    readonly fromDateTimeExclusive: boolean;
     /** Identify the field to filter on. */
     readonly field: TemporalDataObjectDateTimeField;
   }
@@ -19,6 +19,35 @@ declare module 'veritone-types' {
     readonly field: SchemaOrderFields;
 
     readonly direction: OrderDirection;
+  }
+  /** Source list sort information */
+  export interface SourceSortField {
+    /** Specify the field to sort by. Required. */
+    readonly field: SourceOrderField;
+    /** Specify the sort direction. Default is descending. */
+    readonly direction: OrderDirection;
+  }
+
+  export interface JobSortField {
+    readonly field: JobOrderField;
+
+    readonly direction: OrderDirection;
+  }
+
+  export interface JobDateTimeFilter {
+    readonly toDateTime: Maybe<DateTime>;
+
+    readonly fromDateTime: Maybe<DateTime>;
+
+    readonly field: JobDateTimeField;
+  }
+
+  export interface TaskDateTimeFilter {
+    readonly toDateTime: Maybe<DateTime>;
+
+    readonly fromDateTime: Maybe<DateTime>;
+
+    readonly field: TaskDateTimeField;
   }
 
   export interface EngineFilter {
@@ -56,35 +85,6 @@ declare module 'veritone-types' {
     readonly field: EngineOrderField;
 
     readonly direction: Maybe<OrderDirection>;
-  }
-  /** Source list sort information */
-  export interface SourceSortField {
-    /** Specify the field to sort by. Required. */
-    readonly field: SourceOrderField;
-    /** Specify the sort direction. Default is descending. */
-    readonly direction: OrderDirection;
-  }
-
-  export interface JobSortField {
-    readonly field: JobOrderField;
-
-    readonly direction: OrderDirection;
-  }
-
-  export interface JobDateTimeFilter {
-    readonly toDateTime: Maybe<DateTime>;
-
-    readonly fromDateTime: Maybe<DateTime>;
-
-    readonly field: JobDateTimeField;
-  }
-
-  export interface TaskDateTimeFilter {
-    readonly toDateTime: Maybe<DateTime>;
-
-    readonly fromDateTime: Maybe<DateTime>;
-
-    readonly field: TaskDateTimeField;
   }
 
   export interface DataRegistryVersion {
@@ -143,11 +143,25 @@ declare module 'veritone-types' {
 
     readonly direction: OrderDirection;
   }
+
+  export interface ClusterDateTimeFilter {
+    readonly toDateTime: Maybe<DateTime>;
+
+    readonly fromDateTime: Maybe<DateTime>;
+
+    readonly field: ClusterDateTimeField;
+  }
+
+  export interface ClusterOrderBy {
+    readonly field: ClusterOrderByField;
+
+    readonly direction: OrderDirection;
+  }
   /** Payload required to create a temporal data object */
   export interface CreateTdo {
-    /** Start date and time in numerical (epoch) format. */
+    /** Start date and time. ISO-8601 standard strings and numerical format in either Unix format (seconds since epoch) or milliseconds since epoch are accepted. */
     readonly startDateTime: DateTime;
-    /** Stop date and time in numerical (epoch) format. */
+    /** Stop date and time. ISO-8601 standard strings and numerical format in either Unix format (seconds since epoch) or milliseconds since epoch are accepted. */
     readonly stopDateTime: DateTime;
     /** Source for the TDO, such as an ingestion type or engine ID. */
     readonly source: Maybe<string>;
@@ -170,11 +184,15 @@ declare module 'veritone-types' {
     /** Optionally, specify one or more structured data objects to apply as content templates to the TDO. They will be stored as assets of type content-template and will contain an immutable copy of the original data. */
     readonly contentTemplates: Maybe<ReadonlyArray<CreateTdoContentTemplateWithTdo>>;
     /** Optionally, add the new data to the search index. If the data is not indexed on creation, it can be indexed later by using `updateTDO` or creating a suitable job. */
-    readonly addToIndex: Maybe<boolean>;
+    readonly addToIndex: boolean;
     /** An optional thumbnail URL for the TDO */
     readonly thumbnailUrl: Maybe<string>;
+    /** An optional preview asset URL for the TDO */
+    readonly previewUrl: Maybe<string>;
     /** An optional image representing the TDO source */
     readonly sourceImageUrl: Maybe<string>;
+    /** Optionally, provide information to create one or more assets. */
+    readonly assets: Maybe<ReadonlyArray<CreateAssetInTdo>>;
   }
   /** Identifies the task that created a TDO. */
   export interface SetTdoSourceData {
@@ -193,6 +211,55 @@ declare module 'veritone-types' {
     readonly sdoId: Maybe<string>;
     /** To create a new structured data object, supply this field with JSON to save in the SDO. The JSON must comply with the schema defined in data registry. */
     readonly data: Maybe<Json>;
+  }
+
+  export interface CreateAssetInTdo {
+    /** A valid MIME type */
+    readonly contentType: Maybe<string>;
+    /** An optional description for the asset */
+    readonly description: Maybe<string>;
+    /** Asset type See https://docs.veritone.com/#/apis/tutorials/asset-types for supported values. */
+    readonly assetType: string;
+    /** URI to the asset data. */
+    readonly uri: string;
+    /** Optionally, set attributes about the file */
+    readonly fileData: Maybe<SetAssetFileData>;
+    /** Optionally, set attributes about the source engine and task */
+    readonly sourceData: Maybe<SetAssetSourceData>;
+    /** Application- or type-specific metadata */
+    readonly details: Maybe<Json>;
+    /** File or other name */
+    readonly name: Maybe<string>;
+    /** If true, sets the new asset to be the primary asset of its type. Only certain asset types, such as "media" and "transcript", can have primary assets. */
+    readonly setAsPrimary: boolean;
+  }
+  /** Input type for AssetFileData */
+  export interface SetAssetFileData {
+    /** The MD5 checksum of the file */
+    readonly md5sum: Maybe<string>;
+    /** The file size in bytes */
+    readonly size: Maybe<number>;
+    /** Original file URI, if provided on asset creation */
+    readonly originalFileUri: Maybe<string>;
+    /** The insertion mode of the asset */
+    readonly mode: AssetCreationMode;
+    /** Media duration in milliseconds */
+    readonly mediaDurationMs: Maybe<number>;
+  }
+  /** Input type for AssetSourceData */
+  export interface SetAssetSourceData {
+    /** The name of the asset source engine or engine category */
+    readonly name: Maybe<string>;
+    /** ID of the specific task that created the asset */
+    readonly taskId: Maybe<string>;
+    /** ID of the engine that created the asset */
+    readonly engineId: Maybe<string>;
+    /** Optional ID of the source from which this asset was created. This field will typically be set only by adapters that ingest data. */
+    readonly sourceId: Maybe<string>;
+    /** Optional ID of the scheduled job that created this asset */
+    readonly scheduledJobId: Maybe<string>;
+    /** Optional ID of the asset this asset was created from. This will usually be assets with edits to a previous asset. */
+    readonly assetId: Maybe<string>;
   }
   /** Payload required to create a temporal data object */
   export interface UpdateTdo {
@@ -220,6 +287,8 @@ declare module 'veritone-types' {
     readonly contentTemplates: Maybe<ReadonlyArray<CreateTdoContentTemplateWithTdo>>;
     /** An optional thumbnail URL for the TDO */
     readonly thumbnailUrl: Maybe<string>;
+    /** An optional preview asset URL for the TDO */
+    readonly previewUrl: Maybe<string>;
     /** An optional image representing the TDO source */
     readonly sourceImageUrl: Maybe<string>;
   }
@@ -249,9 +318,9 @@ declare module 'veritone-types' {
     readonly file: Maybe<UploadedFile>;
     /** Optional expected checksum for the file */
     readonly md5sum: Maybe<string>;
-    /** Asset type - deprecated (use type) */
+    /** The asset type. Either this or assetType must be provided. See https://docs.veritone.com/#/apis/tutorials/asset-types for supported values. */
     readonly assetType: Maybe<string>;
-    /** The asset type. Either this or assetType must be provided. */
+    /** deprecated - use assetType */
     readonly type: Maybe<string>;
     /** URI to the asset data. Optional -- if a file is provided, the URI will be computed by the server. */
     readonly uri: Maybe<string>;
@@ -266,37 +335,11 @@ declare module 'veritone-types' {
     /** Deprecated. Set `fileData`, `sourceData`, or `details` instead. */
     readonly jsondata: Maybe<Json>;
     /** if true, sets the new asset to be the primary asset of its type. Only certain asset types, such as "media" and "transcript", can have primary assets. */
-    readonly setAsPrimary: Maybe<boolean>;
+    readonly setAsPrimary: boolean;
     /** Set to true if this asset was created by editing another asset. */
-    readonly isUserEdited: Maybe<boolean>;
+    readonly isUserEdited: boolean;
     /** Set to true if the container stopDateTime needs to be updated by the duration of the asset */
-    readonly updateContainerStopDateTime: Maybe<boolean>;
-  }
-  /** Input type for AssetFileData */
-  export interface SetAssetFileData {
-    /** The MD5 checksum of the file */
-    readonly md5sum: Maybe<string>;
-    /** The file size in bytes */
-    readonly size: Maybe<number>;
-    /** Original file URI, if provided on asset creation */
-    readonly originalFileUri: Maybe<string>;
-    /** The insertion mode of the asset */
-    readonly mode: AssetCreationMode;
-  }
-  /** Input type for AssetSourceData */
-  export interface SetAssetSourceData {
-    /** The name of the asset source engine or engine category */
-    readonly name: Maybe<string>;
-    /** ID of the specific task that created the asset */
-    readonly taskId: Maybe<string>;
-    /** ID of the engine that created the asset */
-    readonly engineId: Maybe<string>;
-    /** Optional ID of the source from which this asset was created. This field will typically be set only by adapters that ingest data. */
-    readonly sourceId: Maybe<string>;
-    /** Optional ID of the scheduled job that created this asset */
-    readonly scheduledJobId: Maybe<string>;
-    /** Optional ID of the asset this asset was created from. This will usually be assets with edits to a previous asset. */
-    readonly assetId: Maybe<string>;
+    readonly updateContainerStopDateTime: boolean;
   }
   /** Input needed to update an asset. The asset data itself -- file or URI -- is immutable. Only supplemental metadata can be updated with this input type. */
   export interface UpdateAsset {
@@ -314,19 +357,28 @@ declare module 'veritone-types' {
     readonly details: Maybe<Json>;
   }
 
+  export interface AddMediaSegment {
+    /** ID of the TemporalDataObject container for the segment */
+    readonly containerId: string;
+    /** Details for the segment, such as start and stop offset */
+    readonly details: Json;
+    /** The url to the segment content. */
+    readonly url: string;
+  }
+
   export interface RequestClone {
     readonly sourceApplicationId: string;
 
     readonly destinationApplicationId: string;
 
-    readonly cloneBlobs: Maybe<boolean>;
+    readonly cloneBlobs: boolean;
   }
   /** Input fields used to create a new engine. */
   export interface CreateEngine {
     /** Optional given id */
     readonly id: Maybe<string>;
     /** Indicates whether or not the engine should be public -- visible to and usable by users outside the creator's organization. Typically an engine should not be made public until it has been fully configured and tested in production. */
-    readonly isPublic: Maybe<boolean>;
+    readonly isPublic: boolean;
     /** Human-readable name for the engine */
     readonly name: string;
     /** An optional description for the engine. */
@@ -344,9 +396,15 @@ declare module 'veritone-types' {
     /** The path for a logo image */
     readonly logoPath: Maybe<string>;
     /** Whether or not the engine requires a library. */
-    readonly libraryRequired: Maybe<boolean>;
+    readonly libraryRequired: boolean;
     /** Whether or not the engine creates a TDO */
-    readonly createsTDO: Maybe<boolean>;
+    readonly createsTDO: boolean;
+    /** List of use cases the engine serves */
+    readonly useCases: Maybe<ReadonlyArray<string>>;
+    /** List of industries where the capabilities of the engine can be applied */
+    readonly industries: Maybe<ReadonlyArray<string>>;
+    /** Generic Manifest for the engine based on data supplied during onboarding */
+    readonly manifest: Maybe<Json>;
   }
 
   export interface CreateEngineField {
@@ -370,6 +428,8 @@ declare module 'veritone-types' {
     readonly defaultValue: Maybe<string>;
     /** Optional default values to apply to a picklist. This field should only be set for a field of type multi-picklist. */
     readonly defaultValues: Maybe<ReadonlyArray<string>>;
+    /** specifies whether the field is optional */
+    readonly required: boolean;
   }
   /** Represents one allowed option in a picklist. */
   export interface CreateEngineFieldPicklistOption {
@@ -402,10 +462,22 @@ declare module 'veritone-types' {
     readonly logoPath: Maybe<string>;
     /** Whether or not the engine requires a library. */
     readonly libraryRequired: Maybe<boolean>;
+    /** List of use cases the engine serves */
+    readonly useCases: Maybe<ReadonlyArray<string>>;
+    /** List of industries where the capabilities of the engine can be applied */
+    readonly industries: Maybe<ReadonlyArray<string>>;
+    /** Generic Manifest for the engine based on data supplied during onboarding */
+    readonly manifest: Maybe<Json>;
   }
 
   export interface CreateBuild {
     readonly engineId: string;
+
+    readonly taskRuntime: Maybe<Json>;
+
+    readonly dockerImage: Maybe<string>;
+
+    readonly manifest: Maybe<Json>;
   }
 
   export interface UpdateBuild {
@@ -444,6 +516,10 @@ declare module 'veritone-types' {
     readonly executionLocationData: Maybe<Json>;
     /** Optional timestamp used to control change ordering. The client may set this to the `modifiedDateTime` value of most recent copy of the task it has before making the update. The server will _only_ update the task with the requested changes _if_ and only if the current `modifiedDateTime` value is equal to or earlier than the supplied `clientTimestamp` value. Thus, changes that were made after the client last retrieved the task data will not be overwritten. */
     readonly clientTimestamp: Maybe<DateTime>;
+    /** A code indicating why the task failed. Should be set if and only if task status is `failed`. If set with any other task status, the API will return an error. */
+    readonly failureReason: Maybe<TaskFailureReason>;
+    /** A human-readable string with detail on the task failure reason. Should be set if and only if task status is `failed` and `failureReason` is set. If set with any other task status or if `failureReason` is not set, the API will return an error. */
+    readonly failureMessage: Maybe<string>;
   }
 
   export interface AddTasksToJobs {
@@ -483,7 +559,7 @@ declare module 'veritone-types' {
 
     readonly tasks: Maybe<ReadonlyArray<CreateTask>>;
 
-    readonly retries: Maybe<number>;
+    readonly retries: number;
     /** Optionally, specify the scheduled job ID that this job is associated with. Typically it is not necessary for a client to set this; it is handled internally by the API. */
     readonly scheduledJobId: Maybe<string>;
     /** Supply a job template ID to indicate that this job was created from the given job template. To create a job _from_ a template, use `launchJobTemplates`. */
@@ -496,6 +572,10 @@ declare module 'veritone-types' {
     readonly jobConfig: Maybe<Json>;
 
     readonly isReprocessJob: Maybe<boolean>;
+    /** Optionally, provide input needed to create a `TemporalDataObject`. The new `TemporalDataObject` will be the target of this job. */
+    readonly target: Maybe<CreateTdoInJob>;
+    /** ID of the organization that the job should be created on behalf of. Only internal platform components can set this value. */
+    readonly organizationId: Maybe<string>;
   }
   /** Fields required to create a task. Used when creating a job. */
   export interface CreateTask {
@@ -516,6 +596,39 @@ declare module 'veritone-types' {
     /** Optionally, provide a task definition that will be executed if and only if this one fails. Standby tasks can be nested. */
     readonly standbyTask: Maybe<CreateTask>;
   }
+  /** Payload required to create a temporal data object */
+  export interface CreateTdoInJob {
+    /** Start date and time. ISO-8601 standard strings and numerical format in either Unix format (seconds since epoch) or milliseconds since epoch are accepted. */
+    readonly startDateTime: Maybe<DateTime>;
+    /** Stop date and time. ISO-8601 standard strings and numerical format in either Unix format (seconds since epoch) or milliseconds since epoch are accepted. */
+    readonly stopDateTime: Maybe<DateTime>;
+    /** Status, such as "downloaded" or "recording". The server will set a value if one is not provided. */
+    readonly status: string;
+    /** A name for the TDO object, such as the name of the primary media file. */
+    readonly name: Maybe<string>;
+    /** A description for the TDO object. */
+    readonly description: Maybe<string>;
+    /** True if the new TDO should be made public. If true, security.global will be set to true and users from other organizations will be able to view, but not modify, the TDO's metadata and assets. */
+    readonly isPublic: Maybe<boolean>;
+    /** An optional parent folder ID for the new TemporalDataObject. The folder can be filed in additional folders later using `fileTemporalDataObject`, or un-filed from this one. */
+    readonly parentFolderId: Maybe<string>;
+    /** Optionally, set source data for this TDO. Source data identifies that task that generated this TDO. If the TDO was not generated as part of engine or adapter execution, this field should not be set. However, it is _strongly_ recommended that engines that create TDOs set this field. Doing so ensures that later tasks in the same job have appropriate access to the new TDO. */
+    readonly sourceData: Maybe<SetTdoSourceData>;
+
+    readonly details: Maybe<Json>;
+    /** Optionally, specify one or more structured data objects to apply as content templates to the TDO. They will be stored as assets of type content-template and will contain an immutable copy of the original data. */
+    readonly contentTemplates: Maybe<ReadonlyArray<CreateTdoContentTemplateWithTdo>>;
+    /** Optionally, add the new data to the search index. If the data is not indexed on creation, it can be indexed later by using `updateTDO` or creating a suitable job. */
+    readonly addToIndex: boolean;
+    /** An optional thumbnail URL for the TDO */
+    readonly thumbnailUrl: Maybe<string>;
+    /** An optional preview asset URL for the TDO */
+    readonly previewUrl: Maybe<string>;
+    /** An optional image representing the TDO source */
+    readonly sourceImageUrl: Maybe<string>;
+    /** Optionally, provide information to create one or more assets. */
+    readonly assets: Maybe<ReadonlyArray<CreateAssetInTdo>>;
+  }
 
   export interface UpdateJobs {
     readonly ids: Maybe<ReadonlyArray<string>>;
@@ -530,13 +643,13 @@ declare module 'veritone-types' {
 
     readonly category: Maybe<string>;
 
-    readonly description: string;
+    readonly description: Maybe<string>;
 
     readonly iconUrl: Maybe<string>;
 
     readonly iconSvg: Maybe<string>;
 
-    readonly url: string;
+    readonly url: Maybe<string>;
 
     readonly oauth2RedirectUrls: Maybe<ReadonlyArray<Maybe<string>>>;
 
@@ -560,9 +673,14 @@ declare module 'veritone-types' {
   }
 
   export interface CreateContextMenuExtension {
+    /** id of the application to create the context menu extension for */
+    readonly id: string;
+
     readonly label: string;
 
     readonly url: string;
+
+    readonly type: ContextMenuExtensionType;
   }
 
   export interface UpdateApplication {
@@ -604,11 +722,23 @@ declare module 'veritone-types' {
   }
 
   export interface UpdateContextMenuExtension {
-    readonly id: Maybe<string>;
+    /** The ID of the context menu extension to update */
+    readonly id: string;
 
     readonly label: string;
 
     readonly url: string;
+  }
+
+  export interface UpdateApplicationComponent {
+    /** the application id */
+    readonly id: string;
+    /** ids of the components to associate with application */
+    readonly componentIds: ReadonlyArray<string>;
+
+    readonly type: ApplicationComponentType;
+
+    readonly action: UpdateApplicationComponentAction;
   }
 
   export interface BulkDeleteContextMenuExtensions {
@@ -764,7 +894,7 @@ declare module 'veritone-types' {
     /** A string containing valid JSON with freeform metadata. If a schema is associated with the entity type, the input will be validated against the schema. Use this field _or_ `jsondata`, not both. */
     readonly jsonstring: Maybe<string>;
 
-    readonly isPublished: Maybe<boolean>;
+    readonly isPublished: boolean;
   }
 
   export interface UpdateEntity {
@@ -803,6 +933,8 @@ declare module 'veritone-types' {
     readonly entityType: Maybe<CreateEntityType>;
     /** If the entity identifier type is image, the new file can automatically be set on the entity as its profile image. This is off by default (the entity profile image is not modified) but can be controlled with this parameter. */
     readonly profileUpdateMode: SetEntityProfileImage;
+    /** Indicates that the URL should be stored directly as a reference and not uploaded to Veritone platform storage. This option is faster by bypasses content validation and can result in data integrity errors if the file is deleted. */
+    readonly storeReference: boolean;
   }
 
   export interface UpdateEntityIdentifier {
@@ -874,7 +1006,7 @@ declare module 'veritone-types' {
 
   export interface CreateDatasetConfidence {
     /** Mininum Confidence Filter. Sources with confidence lower than this will be ignore */
-    readonly min: Maybe<number>;
+    readonly min: number;
     /** Maximum Confidence Filter. Sources with confidence higher than this will be ignore */
     readonly max: number;
     /** allow sources with null confidence values */
@@ -927,38 +1059,44 @@ declare module 'veritone-types' {
     readonly action: EngineWorkflowAction;
   }
 
-  export interface CreateIngestionConfiguration {
-    readonly applicationId: string;
-
-    readonly type: string;
-
-    readonly name: string;
-    /** Container for arbitrary JSON-format metadata including configuration, etc. */
-    readonly jsondata: Maybe<Json>;
-    /** String containing raw JSON-format metadata. You can specify either this value or jsondata, but not both. */
-    readonly jsonstring: Maybe<string>;
-  }
-
-  export interface UpdateIngestionConfiguration {
-    readonly id: string;
-
-    readonly type: Maybe<string>;
-
-    readonly name: Maybe<string>;
-    /** Container for arbitrary JSON-format metadata including configuration, etc. */
-    readonly jsondata: Maybe<Json>;
-    /** String containing raw JSON-format metadata. You can specify either this value or jsondata, but not both. */
-    readonly jsonstring: Maybe<string>;
-  }
-
   export interface CreateWidget {
-    readonly widgetId: Maybe<string>;
-
     readonly collectionId: string;
 
-    readonly organizationId: Maybe<string>;
-
     readonly folderId: Maybe<string>;
+
+    readonly name: Maybe<string>;
+
+    readonly adScript: string;
+
+    readonly width: number;
+
+    readonly numberOfMentionsToShow: number;
+
+    readonly displayLogo: boolean;
+
+    readonly displayCollectionName: boolean;
+
+    readonly displayMentionIntro: boolean;
+
+    readonly displayTranscription: boolean;
+
+    readonly displayCollectionDescription: boolean;
+
+    readonly displayMentionDescription: boolean;
+
+    readonly seoTags: ReadonlyArray<Maybe<string>>;
+
+    readonly backgroundColor: string;
+
+    readonly borderColor: string;
+
+    readonly textColor: string;
+
+    readonly nextButtonColor: Maybe<string>;
+  }
+
+  export interface UpdateWidget {
+    readonly id: string;
 
     readonly name: Maybe<string>;
 
@@ -976,35 +1114,9 @@ declare module 'veritone-types' {
 
     readonly displayTranscription: Maybe<boolean>;
 
-    readonly seoTags: Maybe<ReadonlyArray<Maybe<string>>>;
+    readonly displayCollectionDescription: Maybe<boolean>;
 
-    readonly backgroundColor: Maybe<string>;
-
-    readonly borderColor: Maybe<string>;
-
-    readonly textColor: Maybe<string>;
-  }
-
-  export interface UpdateWidget {
-    readonly id: Maybe<string>;
-
-    readonly widgetId: Maybe<string>;
-
-    readonly name: Maybe<string>;
-
-    readonly organizationId: Maybe<string>;
-
-    readonly collectionId: string;
-
-    readonly displayCollectionName: Maybe<boolean>;
-
-    readonly displayTranscription: Maybe<boolean>;
-
-    readonly width: Maybe<number>;
-
-    readonly numberOfMentionsToShow: Maybe<number>;
-
-    readonly adScript: Maybe<string>;
+    readonly displayMentionDescription: Maybe<boolean>;
 
     readonly seoTags: Maybe<ReadonlyArray<Maybe<string>>>;
 
@@ -1016,9 +1128,7 @@ declare module 'veritone-types' {
 
     readonly createdDateTime: Maybe<DateTime>;
 
-    readonly displayLogo: Maybe<boolean>;
-
-    readonly displayMentionIntro: Maybe<boolean>;
+    readonly nextButtonColor: Maybe<string>;
   }
 
   export interface CreateUser {
@@ -1154,14 +1264,16 @@ declare module 'veritone-types' {
   }
 
   export interface CreateDataRegistry {
-    /** Optionally provide a forced ID */
+    /** Optionally, provide a forced ID. It must be a valid UUID. */
     readonly id: Maybe<string>;
-
+    /** Provide a name for the new data registry. */
     readonly name: string;
-
+    /** Provide a description for the new data registry. */
     readonly description: string;
-
+    /** Provide source information. If in doubt, set this field to the same value as name. */
     readonly source: string;
+    /** Defines a Veritone platform system data registry. Only platform components can set this value. */
+    readonly isSystem: Maybe<boolean>;
   }
 
   export interface UpdateDataRegistry {
@@ -1188,7 +1300,7 @@ declare module 'veritone-types' {
     /** The new schema status */
     readonly status: SchemaStatus;
     /** Specify if publishing this schema would break ingestion */
-    readonly breakingChanges: Maybe<boolean>;
+    readonly breakingChanges: boolean;
   }
 
   export interface CreateStructuredData {
@@ -1235,7 +1347,7 @@ declare module 'veritone-types' {
     readonly shareMessage: Maybe<string>;
     /** list of recipients */
     readonly recipients: Maybe<ReadonlyArray<Maybe<string>>>;
-
+    /** collection specific share options */
     readonly shareOptions: Maybe<ShareOptions>;
   }
 
@@ -1267,6 +1379,17 @@ declare module 'veritone-types' {
     readonly mentionPostPaddingSeconds: Maybe<number>;
   }
 
+  export interface UpdateSharedCollectionHistory {
+    /** The ID of the shared collection history */
+    readonly id: string;
+    /** The new status of the shared collection */
+    readonly status: SharedCollectionHistoryStatus;
+    /** Additional information regarding the status change */
+    readonly statusNote: Maybe<string>;
+    /** Number of times the shared collection has been retried */
+    readonly retryCount: Maybe<number>;
+  }
+
   export interface ShareMentionFromCollection {
     /** id of the mention from collection */
     readonly mentionId: string;
@@ -1287,8 +1410,12 @@ declare module 'veritone-types' {
     readonly shareMessage: Maybe<string>;
     /** list of recipients */
     readonly recipients: Maybe<ReadonlyArray<Maybe<string>>>;
-    /** Collection image */
+    /** app specific share options */
     readonly shareOptions: Maybe<Json>;
+    /** Internal API token can create shared mention for other orgs */
+    readonly organizationId: Maybe<string>;
+    /** UserID the shared mention is being created for */
+    readonly userId: Maybe<string>;
   }
 
   export interface ShareMentionInBulk {
@@ -1308,6 +1435,21 @@ declare module 'veritone-types' {
     /** id of the mention */
     readonly mentionId: string;
   }
+
+  export interface CreateCollectionMentions {
+    /** ids of the collections */
+    readonly folderIds: ReadonlyArray<string>;
+    /** ids of the mentions */
+    readonly mentionIds: ReadonlyArray<string>;
+  }
+
+  export interface UpdateCollectionMention {
+    readonly folderId: string;
+
+    readonly mentionId: string;
+
+    readonly description: string;
+  }
   /** Information required to create a new folder. After creation, a folder can be renamed with the `updateFolder` mutation, but no other changes are supported. */
   export interface CreateFolder {
     /** The folder name */
@@ -1319,7 +1461,7 @@ declare module 'veritone-types' {
     /** Root folder type to apply to the new folder */
     readonly rootFolderType: Maybe<RootFolderType>;
     /** Order index determining in what order the new folder will be displayed relative to other folders at the same level. */
-    readonly orderIndex: Maybe<number>;
+    readonly orderIndex: number;
   }
   /** Information required to update a folder. Currently, the folder can be renamed. No other changes are supported. */
   export interface UpdateFolder {
@@ -1448,6 +1590,12 @@ declare module 'veritone-types' {
     readonly userSnippets: Maybe<Json>;
   }
 
+  export interface UpdateMentions {
+    readonly ids: ReadonlyArray<string>;
+
+    readonly statusId: Maybe<string>;
+  }
+
   export interface BulkUpdateWatchlistFilter {
     /** List of IDs of watchlists to update */
     readonly ids: Maybe<ReadonlyArray<string>>;
@@ -1464,7 +1612,7 @@ declare module 'veritone-types' {
     /** ID of the new parent folder */
     readonly folderId: string;
     /** Order index determining in what order the new TDO will be displayed relative to other TDOs at the same level */
-    readonly orderIndex: Maybe<number>;
+    readonly orderIndex: number;
   }
 
   export interface UnfileTemporalDataObject {
@@ -1496,7 +1644,7 @@ declare module 'veritone-types' {
     readonly uri: Maybe<string>;
     /** The file name */
     readonly filename: Maybe<string>;
-    /** The type of asset to create. Optional -- if not set, it will be deduced from the engine category. */
+    /** The type of asset to create. Optional -- if not set, it will be deduced from the engine category. See https://docs.veritone.com/#/apis/tutorials/asset-types for supported values. */
     readonly assetType: Maybe<string>;
     /** The content type of the file. Optional -- if not set, it will be deduced from the file name. */
     readonly contentType: Maybe<string>;
@@ -1507,11 +1655,15 @@ declare module 'veritone-types' {
     /** Optionally, set attributes about the file */
     readonly fileData: Maybe<SetAssetFileData>;
     /** if true, sets the new asset to be the primary asset of its type. Only certain asset types, such as "media" and "transcript", can have primary assets. */
-    readonly setAsPrimary: Maybe<boolean>;
+    readonly setAsPrimary: boolean;
     /** Skips indexing the engine result, preventing mentions from being generated over the results. */
-    readonly skipIndexing: Maybe<boolean>;
+    readonly skipIndexing: boolean;
     /** Whether or not to set the legacy `task_output` data for compatible with older clients. */
     readonly setTaskOutput: boolean;
+    /** Indicates that the result is one of a series of accumulated results for a task and can replace existing data. Used primarily by Veritone platform components. */
+    readonly isAccumulatedResult: boolean;
+    /** An optional timestamp that the client can send in combination with the `uri` and `isAccumulatedResult` parameters. If set, the uri will only be updated if the currently saved asset metadata is older than the timestamp value. */
+    readonly clientTimestamp: Maybe<DateTime>;
   }
 
   export interface CreateWatchlist {
@@ -1589,6 +1741,8 @@ declare module 'veritone-types' {
     readonly subscriptions: Maybe<ReadonlyArray<CreateSubscriptionInWatchlist>>;
 
     readonly cognitiveSearches: Maybe<ReadonlyArray<CreateCognitiveSearchInWatchlist>>;
+    /** Indicates whether or not the watchlist should be disabled. The Veritone platform can administratively disable watchlists if the search scope as measured in number of mentions exceeds organization limits. The owner can then modify the watchlist parameters to reduce the scope and re-enable the watchlist. */
+    readonly isDisabled: Maybe<boolean>;
   }
 
   export interface UpdateCognitiveSearch {
@@ -1617,7 +1771,7 @@ declare module 'veritone-types' {
     /** ID of the new parent folder */
     readonly folderId: string;
     /** Order index determining in what order the watchlist will be displayed relative to other objects at the same level */
-    readonly orderIndex: Maybe<number>;
+    readonly orderIndex: number;
   }
 
   export interface UnfileWatchlist {
@@ -1646,7 +1800,7 @@ declare module 'veritone-types' {
     /** Stop date and time. If not passed, the server will apply a value based on the default chunk size of 15 minutes. */
     readonly stopDateTime: Maybe<DateTime>;
     /** determine stopDateTime based on the length of the media asset */
-    readonly updateStopDateTimeFromAsset: Maybe<boolean>;
+    readonly updateStopDateTimeFromAsset: boolean;
     /** The ingestion source ID for this file */
     readonly sourceId: Maybe<string>;
     /** Content type for the file. Default is "video/mp4" */
@@ -1663,7 +1817,7 @@ declare module 'veritone-types' {
     readonly isPublic: Maybe<boolean>;
     /** An optional parent folder ID for the new TemporalDataObject. The folder can be filed in additional folders later using `fileTemporalDataObject`, or un-filed from this one. */
     readonly parentFolderId: Maybe<string>;
-    /** Asset type. Default is "media". */
+    /** Asset type. Default is "media". See https://docs.veritone.com/#/apis/tutorials/asset-types for supported values. */
     readonly assetType: string;
     /** Optionally, set source data for this TDO. Source data identifies that task that generated this TDO. If the TDO was not generated as part of engine or adapter execution, this field should not be set. However, it is _strongly_ recommended that engines that create TDOs set this field. Doing so ensures that later tasks in the same job have appropriate access to the new TDO. This source data will be set on both the TDO and the asset. */
     readonly sourceData: Maybe<SetTdoSourceData>;
@@ -1672,9 +1826,11 @@ declare module 'veritone-types' {
     /** Optionally, specify one or more structured data objects to apply as content templates to the TDO. They will be stored as assets of type content-template and will contain an immutable copy of the original data. */
     readonly contentTemplates: Maybe<ReadonlyArray<CreateTdoContentTemplateWithTdo>>;
     /** Optionally, add the new data to the search index. If the data is not indexed on creation, it can be indexed later by using `updateTDO` or creating a suitable job. */
-    readonly addToIndex: Maybe<boolean>;
+    readonly addToIndex: boolean;
     /** An optional thumbnail URL for the TDO */
     readonly thumbnailUrl: Maybe<string>;
+    /** An optional preview asset URL for the TDO */
+    readonly previewUrl: Maybe<string>;
     /** An optional image representing the TDO source */
     readonly sourceImageUrl: Maybe<string>;
   }
@@ -1734,7 +1890,7 @@ declare module 'veritone-types' {
   export interface CreateSavedSearch {
     readonly name: string;
 
-    readonly sharedWithOrganization: Maybe<boolean>;
+    readonly sharedWithOrganization: boolean;
 
     readonly csp: Json;
   }
@@ -1744,7 +1900,7 @@ declare module 'veritone-types' {
 
     readonly name: string;
 
-    readonly sharedWithOrganization: Maybe<boolean>;
+    readonly sharedWithOrganization: boolean;
 
     readonly csp: Json;
   }
@@ -1787,7 +1943,7 @@ declare module 'veritone-types' {
 
   export interface CreateExportRequest {
     /** Whether or not to include TDO media assets in the export. Setting this option can greatly increase the size of the export file. */
-    readonly includeMedia: Maybe<boolean>;
+    readonly includeMedia: boolean;
     /** Information on the TDOs to export data from */
     readonly tdoData: ReadonlyArray<CreateExportRequestForTdo>;
     /** Information on the export output configuration */
@@ -1821,7 +1977,7 @@ declare module 'veritone-types' {
   export interface CreateExportRequestFormatConfig {
     /** The file extension of the export type, such as "vlf" or "ttml". Must be supported by the requested engine category. */
     readonly extension: string;
-    /** Optional export options specific to the target engine category. */
+    /** Optional export options specific to the target engine category. Options vary depending on the extension. See the full list of options available at https://docs.veritone.com/#/apis/tutorials/create-export-request/ */
     readonly options: Maybe<Json>;
   }
 
@@ -2001,6 +2157,41 @@ declare module 'veritone-types' {
     readonly payload: Json;
   }
 
+  export interface EmitAuditEvent {
+    /** The application that created the audit log */
+    readonly application: Maybe<string>;
+    /** The contents of the audit log */
+    readonly payload: Json;
+  }
+
+  export interface DeleteContextMenuExtension {
+    /** The ID of the context menu extension to delete */
+    readonly id: string;
+  }
+
+  export interface SetOrganizationIntegrationConfig {
+    /** input organizationId */
+    readonly organizationId: string;
+    /** input integrationId */
+    readonly integrationId: string;
+    /** If userVisible is set to true, then this can be accessed by any type of auth token (as long as the user belongs to that organization or is a superadmin). If userVisible is set to false, then this can only be accessed by an API key of that org or by superadmins. */
+    readonly userVisible: boolean;
+    /** The JSON config of organization integration */
+    readonly config: Json;
+  }
+
+  export interface DeleteOrganizationIntegrationConfig {
+    readonly organizationId: string;
+
+    readonly integrationId: string;
+  }
+
+  export interface UpdateUserStatus {
+    readonly id: string;
+
+    readonly status: Maybe<UserStatus>;
+  }
+
   export interface CreateCluster {
     readonly name: string;
 
@@ -2021,6 +2212,24 @@ declare module 'veritone-types' {
     readonly bypassAllowedEngines: Maybe<boolean>;
     /** Permissions granted to other organizations. Only the cluster owner can view or edit this field. */
     readonly collaborators: Maybe<ReadonlyArray<CreateClusterCollaborator>>;
+    /** Set subscriptions on the cluster. */
+    readonly subscriptions: Maybe<ReadonlyArray<Maybe<CreateClusterSubscription>>>;
+    /** Tags for cluster */
+    readonly tags: Maybe<ReadonlyArray<Maybe<string>>>;
+    /** Status for cluster */
+    readonly status: Maybe<ClusterStatus>;
+    /** Update the cluster config */
+    readonly clusterConfig: Maybe<Json>;
+    /** media storage type (edge or core) */
+    readonly mediaStorage: MediaStorageOption;
+    /** Media storage path. Optional -- use only for edge. */
+    readonly mediaStoragePath: Maybe<string>;
+    /** Optionally, specify a time at which the edge cluster should be restarted daily. Applies only to edge clusters. */
+    readonly restartTimeUTC: Maybe<Time>;
+    /** Optionally, specify an api-token for cluster */
+    readonly serviceToken: Maybe<string>;
+    /** ID of the organization. Only Veritone platform components can set this value. */
+    readonly organizationId: Maybe<string>;
   }
 
   export interface CreateClusterCollaborator {
@@ -2028,6 +2237,12 @@ declare module 'veritone-types' {
     readonly organizationId: string;
     /** Permission to grant cluster. Can be `viewer`. Set to `none` to revoke permissions for this organization. */
     readonly permission: SetClusterPermission;
+  }
+
+  export interface CreateClusterSubscription {
+    readonly userId: string;
+
+    readonly isActive: boolean;
   }
 
   export interface UpdateCluster {
@@ -2048,6 +2263,28 @@ declare module 'veritone-types' {
     readonly bypassAllowedEngines: Maybe<boolean>;
     /** Permissions granted to other organizations. Only the cluster owner can view or edit this field. */
     readonly collaborators: Maybe<ReadonlyArray<CreateClusterCollaborator>>;
+    /** Tags for cluster */
+    readonly tags: Maybe<ReadonlyArray<Maybe<string>>>;
+
+    readonly status: Maybe<ClusterStatus>;
+    /** Update the cluster config */
+    readonly clusterConfig: Maybe<Json>;
+    /** Media storage path. Optional -- use only for edge. */
+    readonly mediaStoragePath: Maybe<string>;
+    /** Designate a management node ID. Used only for edge/portable clusters. Must be the ID of an existing node in the cluster. */
+    readonly managementNodeID: Maybe<string>;
+    /** Optionally, specify a time at which the edge cluster should be restarted daily. Applies only to edge clusters. */
+    readonly restartTimeUTC: Maybe<Time>;
+    /** Update subscriptions on the cluster. */
+    readonly subscriptions: Maybe<ReadonlyArray<Maybe<UpdateClusterSubscription>>>;
+    /** Optionally, specify an api-token for cluster */
+    readonly serviceToken: Maybe<string>;
+  }
+
+  export interface UpdateClusterSubscription {
+    readonly userId: string;
+
+    readonly isActive: Maybe<boolean>;
   }
 
   export interface PauseCluster {
@@ -2063,43 +2300,25 @@ declare module 'veritone-types' {
 
     readonly clusterId: Maybe<string>;
 
-    readonly metrics: CreateMetrics;
+    readonly metrics: Json;
 
     readonly containerTag: Maybe<string>;
 
     readonly offlineBrowsing: Maybe<boolean>;
 
     readonly storagePresent: Maybe<boolean>;
-
-    readonly type: Maybe<ClusterType>;
-  }
-
-  export interface CreateMetrics {
-    readonly cpuCount: number;
-
-    readonly mbRam: number;
-
-    readonly mbDisk: number;
-
-    readonly ipExternal: Maybe<string>;
-
-    readonly ipInternal: Maybe<string>;
-
-    readonly ami: Maybe<string>;
-
-    readonly ec2InstanceType: Maybe<string>;
-
-    readonly ec2Region: Maybe<string>;
-
-    readonly awsAccount: Maybe<string>;
-
-    readonly loadAverage: Maybe<Json>;
+    /** Update the cluster node config */
+    readonly nodeConfig: Maybe<Json>;
   }
 
   export interface UpdateClusterNode {
     readonly id: string;
 
     readonly name: Maybe<string>;
+    /** Update the cluster node config */
+    readonly nodeConfig: Maybe<Json>;
+
+    readonly metrics: Maybe<Json>;
   }
 
   export interface CreateScheduledJob {
@@ -2132,8 +2351,10 @@ declare module 'veritone-types' {
     readonly contentTemplates: Maybe<ReadonlyArray<CreateScheduledJobContentTemplateWithScheduledJob>>;
     /** Organization ID. Used only by Veritone platform components. Other clients should not attempt to send this field. Any value sent will be ignored. */
     readonly organizationId: Maybe<string>;
+    /** Application ID. Used only by Veritone platform components. Other clients should not attempt to send this field. Any value sent will be ignored. */
+    readonly applicationId: Maybe<string>;
     /** Indicates whether or not the scheduled job is publicly accessible. Only Veritone administrators can create public scheduled jobs. Other users will get an error if they attempt to set this value to true. */
-    readonly isPublic: Maybe<boolean>;
+    readonly isPublic: boolean;
 
     readonly affiliates: Maybe<ReadonlyArray<CreateProgramAffiliate>>;
   }
@@ -2253,11 +2474,11 @@ declare module 'veritone-types' {
     /** Optionally, associate content templates with the new scheduled job */
     readonly contentTemplates: Maybe<ReadonlyArray<CreateScheduledJobContentTemplateWithScheduledJob>>;
     /** Indicates whether or not the scheduled job is publicly accessible. Only Veritone administrators can create public scheduled jobs. Other users will get an error if they attempt to set this value to true. */
-    readonly isPublic: Maybe<boolean>;
+    readonly isPublic: boolean;
 
     readonly affiliates: Maybe<ReadonlyArray<CreateProgramAffiliate>>;
     /** Indicates whether or not the scheduled job we should upgrade this schedule job to the new data model if an upgrade is possible. */
-    readonly migrateIfLegacy: Maybe<boolean>;
+    readonly migrateIfLegacy: boolean;
   }
 
   export interface CreateScheduledJobContentTemplate {
@@ -2277,7 +2498,7 @@ declare module 'veritone-types' {
     /** The human-readable source name. The value does not have to be unique, but it is strongly recommended to use a name that is unique within the owning organization. */
     readonly name: string;
     /** Indicates whether or not the source is public. Default is false (private to owner organization). */
-    readonly isPublic: Maybe<boolean>;
+    readonly isPublic: boolean;
     /** Additional metadata to associate with the source. This data may be validated against a schema associated with the source type. */
     readonly details: Maybe<Json>;
     /** Optional thumbnail image URL for the source */
@@ -2359,7 +2580,7 @@ declare module 'veritone-types' {
     /** Indicates whether or not the source type is "live", such as a camera feed */
     readonly isLive: Maybe<boolean>;
     /** Indicates whether or not the source type requires scan pipeline jobs */
-    readonly requiresScanPipeline: Maybe<boolean>;
+    readonly requiresScanPipeline: boolean;
     /** Source type category ID */
     readonly categoryId: string;
   }
@@ -2381,7 +2602,7 @@ declare module 'veritone-types' {
     /** Indicates whether or not the source type is "live", such as a camera feed */
     readonly isLive: Maybe<boolean>;
     /** Indicates whether or not the source type requires scan pipeline jobs */
-    readonly requiresScanPipeline: Maybe<boolean>;
+    readonly requiresScanPipeline: boolean;
     /** Source type category ID */
     readonly categoryId: Maybe<string>;
   }
@@ -2389,7 +2610,7 @@ declare module 'veritone-types' {
   export interface CreateJobPipeline {
     readonly jobTemplateIds: Maybe<ReadonlyArray<string>>;
 
-    readonly isPublic: Maybe<boolean>;
+    readonly isPublic: boolean;
   }
 
   export interface UpdateJobPipeline {
@@ -2483,9 +2704,11 @@ declare module 'veritone-types' {
     /** Optionally, specify one or more structured data objects to apply as content templates to the TDO. They will be stored as assets of type content-template and will contain an immutable copy of the original data. */
     readonly contentTemplates: Maybe<ReadonlyArray<CreateTdoContentTemplateWithTdo>>;
     /** Optionally, add the new data to the search index. If the data is not indexed on creation, it can be indexed later by using `updateTDO` or creating a suitable job. */
-    readonly addToIndex: Maybe<boolean>;
+    readonly addToIndex: boolean;
     /** An optional thumbnail URL for the TDO */
     readonly thumbnailUrl: Maybe<string>;
+    /** An optional preview asset URL for the TDO */
+    readonly previewUrl: Maybe<string>;
     /** An optional image representing the TDO source */
     readonly sourceImageUrl: Maybe<string>;
   }
@@ -2496,6 +2719,8 @@ declare module 'veritone-types' {
     readonly scheduledJobId: Maybe<string>;
 
     readonly payload: Maybe<Json>;
+    /** Optional data used to create a _new_ TDO for the job. Specify this field _or_ `targetInfo`, but not both. */
+    readonly createTargetInfo: Maybe<CreateTdoForJob>;
 
     readonly targetInfo: Maybe<LaunchJobTemplatesTargetInfo>;
   }
@@ -2543,6 +2768,32 @@ declare module 'veritone-types' {
 
   export interface BundleError {
     readonly error: string;
+  }
+
+  export interface PauseClusterNode {
+    /** Node ID */
+    readonly id: string;
+  }
+
+  export interface UnpauseClusterNode {
+    /** Node ID */
+    readonly id: string;
+  }
+  /** Updates the state information for a given cluster */
+  export interface UpdateClusterState {
+    readonly nodes: Maybe<ReadonlyArray<Maybe<ClusterNodeUpdate>>>;
+    /** The cluster ID */
+    readonly id: string;
+
+    readonly state: Json;
+    /** Optionally, update current the cluster status. */
+    readonly targetStatus: Maybe<ClusterStatus>;
+  }
+
+  export interface ClusterNodeUpdate {
+    readonly nodeId: string;
+
+    readonly metrics: Maybe<Json>;
   }
 
   export interface CreateAllPipelineJobs {
@@ -2603,9 +2854,9 @@ declare module 'veritone-types' {
 
   export interface SearchInput {
     /** Provide an offset to skip to a certain element in the result, for paging. */
-    readonly offset: Maybe<number>;
+    readonly offset: number;
     /** Maximum number of results that were retrieved in this query; page size */
-    readonly limit: Maybe<number>;
+    readonly limit: number;
 
     readonly index: ReadonlyArray<Maybe<string>>;
 
@@ -2670,6 +2921,7 @@ declare module 'veritone-types' {
     Waiting = 'waiting',
     Resuming = 'resuming',
     Aborted = 'aborted',
+    Paused = 'paused',
   }
   /** Deployment models describe how an engine or application operates on the network and where the data it works with is transmitted. See Veritone's developer documentation at https://steel-ventures.atlassian.net/wiki/spaces/VDH/pages/101364981/Engine+Deployment+Models for a full description. */
   export enum DeploymentModel {
@@ -2701,22 +2953,6 @@ declare module 'veritone-types' {
     Undelete = 'undelete',
   }
 
-  export enum OrganizationStatus {
-    Active = 'active',
-    Deleted = 'deleted',
-  }
-
-  export enum RootFolderType {
-    Watchlist = 'watchlist',
-    Collection = 'collection',
-    Cms = 'cms',
-  }
-
-  export enum FolderStatus {
-    Active = 'active',
-    Inactive = 'inactive',
-  }
-
   export enum SchemaStatus {
     Published = 'published',
     Deleted = 'deleted',
@@ -2732,67 +2968,15 @@ declare module 'veritone-types' {
     ModifiedDateTime = 'modifiedDateTime',
   }
 
-  export enum SchemaAction {
-    View = 'view',
-    Edit = 'edit',
-    Publish = 'publish',
-    Deactivate = 'deactivate',
-    Delete = 'delete',
+  export enum RootFolderType {
+    Watchlist = 'watchlist',
+    Collection = 'collection',
+    Cms = 'cms',
   }
 
-  export enum StructuredDataOrderByField {
-    CreatedDateTime = 'createdDateTime',
-    ModifiedDateTime = 'modifiedDateTime',
-  }
-
-  export enum UserStatus {
+  export enum FolderStatus {
     Active = 'active',
-    Suspended = 'suspended',
-    Deleted = 'deleted',
-  }
-
-  export enum EngineTypeFilter {
-    Cognition = 'Cognition',
-    Ingestion = 'Ingestion',
-    Aggregator = 'Aggregator',
-  }
-
-  export enum ClusterSize {
-    Small = 'small',
-    Medium = 'medium',
-    Large = 'large',
-  }
-
-  export enum SupportedGpu {
-    G2 = 'G2',
-    G3 = 'G3',
-    P2 = 'P2',
-  }
-
-  export enum EngineMode {
-    Chunk = 'Chunk',
-    Stream = 'Stream',
-    Batch = 'Batch',
-  }
-
-  export enum EngineOrderField {
-    Name = 'name',
-    Id = 'id',
-    State = 'state',
-    Price = 'price',
-    Rating = 'rating',
-    Order = 'order',
-    CreatedDateTime = 'createdDateTime',
-    ModifiedDateTime = 'modifiedDateTime',
-  }
-
-  export enum EntityIdentifierDataType {
-    Image = 'image',
-    Audio = 'audio',
-    Video = 'video',
-    Text = 'text',
-    Pdf = 'pdf',
-    Tdo = 'tdo',
+    Inactive = 'inactive',
   }
 
   export enum SubscriptionObjectType {
@@ -2819,6 +3003,12 @@ declare module 'veritone-types' {
   export enum SearchIndex {
     Mine = 'mine',
     Global = 'global',
+  }
+
+  export enum EngineTypeFilter {
+    Cognition = 'Cognition',
+    Ingestion = 'Ingestion',
+    Aggregator = 'Aggregator',
   }
 
   export enum CredentialType {
@@ -2864,11 +3054,21 @@ declare module 'veritone-types' {
   export enum ClusterType {
     Ami = 'ami',
     Rt = 'RT',
+    OnPrem = 'OnPrem',
   }
 
   export enum ClusterPermission {
     Owner = 'owner',
     Viewer = 'viewer',
+  }
+
+  export enum JobStatusFilter {
+    Pending = 'pending',
+    Running = 'running',
+    Complete = 'complete',
+    Cancelled = 'cancelled',
+    Queued = 'queued',
+    Failed = 'failed',
   }
 
   export enum JobOrderField {
@@ -2881,12 +3081,24 @@ declare module 'veritone-types' {
     ModifiedDateTime = 'modifiedDateTime',
   }
 
-  export enum JobStatusFilter {
+  export enum TaskDateTimeField {
+    CreatedDateTime = 'createdDateTime',
+    ModifiedDateTime = 'modifiedDateTime',
+  }
+
+  export enum ClusterStatus {
     Pending = 'pending',
-    Running = 'running',
-    Complete = 'complete',
-    Cancelled = 'cancelled',
-    Queued = 'queued',
+    Active = 'active',
+    Deploying = 'deploying',
+    Online = 'online',
+    Paused = 'paused',
+    Terminated = 'terminated',
+    Failure = 'failure',
+  }
+
+  export enum MediaStorageOption {
+    Edge = 'edge',
+    Core = 'core',
   }
 
   export enum ScheduleType {
@@ -2908,6 +3120,69 @@ declare module 'veritone-types' {
     Viewer = 'viewer',
     Owner = 'owner',
   }
+
+  export enum UserStatus {
+    Active = 'active',
+    Suspended = 'suspended',
+    Deleted = 'deleted',
+  }
+
+  export enum SchemaAction {
+    View = 'view',
+    Edit = 'edit',
+    Publish = 'publish',
+    Deactivate = 'deactivate',
+    Delete = 'delete',
+  }
+
+  export enum StructuredDataOrderByField {
+    CreatedDateTime = 'createdDateTime',
+    ModifiedDateTime = 'modifiedDateTime',
+  }
+
+  export enum OrganizationStatus {
+    Active = 'active',
+    Deleted = 'deleted',
+  }
+
+  export enum ClusterSize {
+    Small = 'small',
+    Medium = 'medium',
+    Large = 'large',
+  }
+
+  export enum SupportedGpu {
+    G2 = 'G2',
+    G3 = 'G3',
+    P2 = 'P2',
+  }
+
+  export enum EngineMode {
+    Chunk = 'Chunk',
+    Stream = 'Stream',
+    Batch = 'Batch',
+  }
+
+  export enum EngineOrderField {
+    Name = 'name',
+    Id = 'id',
+    State = 'state',
+    Price = 'price',
+    Rating = 'rating',
+    Order = 'order',
+    CreatedDateTime = 'createdDateTime',
+    ModifiedDateTime = 'modifiedDateTime',
+  }
+
+  export enum EntityIdentifierDataType {
+    Image = 'image',
+    Audio = 'audio',
+    Video = 'video',
+    Text = 'text',
+    Pdf = 'pdf',
+    Tdo = 'tdo',
+    Objectbox = 'objectbox',
+  }
   /** Enumeration containing the set of allowed values for the Engine state field. */
   export enum EngineState {
     Active = 'active',
@@ -2916,11 +3191,6 @@ declare module 'veritone-types' {
     Deleted = 'deleted',
     Draft = 'draft',
     Ready = 'ready',
-  }
-
-  export enum TaskDateTimeField {
-    CreatedDateTime = 'createdDateTime',
-    ModifiedDateTime = 'modifiedDateTime',
   }
   /** Valid strings for the `Build.status` field. */
   export enum BuildStatus {
@@ -2935,6 +3205,7 @@ declare module 'veritone-types' {
     Pending = 'pending',
     Uploaded = 'uploaded',
     DeployFailed = 'deployFailed',
+    Disapproved = 'disapproved',
   }
 
   export enum BuildUpdateAction {
@@ -2970,6 +3241,29 @@ declare module 'veritone-types' {
     OnDemand = 'OnDemand',
     Recurring = 'Recurring',
     Continuous = 'Continuous',
+  }
+  /** Need to keep in sync with https://github.com/veritone/edge-messages/blob/master/failure_reason.go */
+  export enum TaskFailureReason {
+    InternalError = 'internal_error',
+    Unknown = 'unknown',
+    UrlNotFound = 'url_not_found',
+    UrlNotAllowed = 'url_not_allowed',
+    UrlTimeout = 'url_timeout',
+    UrlConnectionRefused = 'url_connection_refused',
+    UrlError = 'url_error',
+    InvalidData = 'invalid_data',
+    RateLimited = 'rate_limited',
+    ApiNotAllowed = 'api_not_allowed',
+    ApiAuthenticationError = 'api_authentication_error',
+    ApiNotFound = 'api_not_found',
+    ApiError = 'api_error',
+    FileWriteError = 'file_write_error',
+    StreamReadError = 'stream_read_error',
+    SystemDependencyMissing = 'system_dependency_missing',
+    SystemError = 'system_error',
+    HeartbeatTimeout = 'heartbeat_timeout',
+    ChunkTimeout = 'chunk_timeout',
+    Other = 'other',
   }
   /** The possible transformer functions which can be used with assets */
   export enum TransformFunction {
@@ -3066,6 +3360,13 @@ declare module 'veritone-types' {
     Success = 'success',
   }
 
+  export enum SharedCollectionHistoryStatus {
+    New = 'New',
+    InProgress = 'InProgress',
+    Complete = 'Complete',
+    Failed = 'Failed',
+  }
+
   export enum ScheduledJobDateTimeField {
     StartDateTime = 'startDateTime',
     StopDateTime = 'stopDateTime',
@@ -3088,11 +3389,18 @@ declare module 'veritone-types' {
     RunMode = 'runMode',
     IsActive = 'isActive',
   }
-  /** Options used by the cleanupTDO mutation to select which data is deleted. */
-  export enum TdoCleanupOption {
-    Storage = 'storage',
-    SearchIndex = 'searchIndex',
-    EngineResults = 'engineResults',
+
+  export enum ClusterDateTimeField {
+    CreatedDateTime = 'createdDateTime',
+    ModifiedDateTime = 'modifiedDateTime',
+    StateLastUpdatedDateTime = 'stateLastUpdatedDateTime',
+  }
+
+  export enum ClusterOrderByField {
+    Name = 'name',
+    CreatedDateTime = 'createdDateTime',
+    ModifiedDateTime = 'modifiedDateTime',
+    StateLastUpdatedDateTime = 'stateLastUpdatedDateTime',
   }
 
   export enum AssetCreationMode {
@@ -3100,9 +3408,32 @@ declare module 'veritone-types' {
     Append = 'append',
     Replace = 'replace',
   }
+  /** Options used by the cleanupTDO mutation to select which data is deleted. */
+  export enum TdoCleanupOption {
+    Storage = 'storage',
+    SearchIndex = 'searchIndex',
+    EngineResults = 'engineResults',
+  }
 
   export enum UpdateJobsStatus {
     Queued = 'queued',
+  }
+
+  export enum ContextMenuExtensionType {
+    Mention = 'mention',
+    Watchlist = 'watchlist',
+    Collection = 'collection',
+    Tdo = 'tdo',
+  }
+
+  export enum ApplicationComponentType {
+    Engines = 'engines',
+    DataRegistries = 'dataRegistries',
+  }
+
+  export enum UpdateApplicationComponentAction {
+    Add = 'add',
+    Remove = 'remove',
   }
   /** Settings that determine when to set a new entity identifier as the entity profile image. */
   export enum SetEntityProfileImage {
@@ -3129,6 +3460,12 @@ declare module 'veritone-types' {
   export enum OrganizationType {
     Agency = 'agency',
     Broadcaster = 'broadcaster',
+  }
+
+  export enum SharedCollectionUpdateType {
+    AddMentions = 'AddMentions',
+    RemoveMentions = 'RemoveMentions',
+    UpdateMentions = 'UpdateMentions',
   }
 
   export enum CreateTriggerTarget {
@@ -3179,6 +3516,7 @@ declare module 'veritone-types' {
     Running = 'running',
     Cancelled = 'cancelled',
     Queued = 'queued',
+    Failed = 'failed',
   }
 
   export enum ScopeRequirement {
@@ -3319,12 +3657,14 @@ declare module 'veritone-types' {
     readonly rootFolders: Maybe<ReadonlyArray<Maybe<Folder>>>;
     /** Retrieve a single folder. Used to navigate the folder tree structure. */
     readonly folder: Maybe<Folder>;
+
+    readonly auditEvents: AuditEventList;
+
+    readonly folderOverview: Maybe<FolderOverview>;
+
+    readonly folderSummaryDetails: Maybe<ReadonlyArray<Maybe<FolderSummaryDetail>>>;
     /** Retrieve a single application */
     readonly application: Maybe<Application>;
-    /** Retrieve a single ingestion configuration */
-    readonly ingestionConfiguration: Maybe<IngestionConfiguration>;
-    /** Retrieve ingestion configurations */
-    readonly ingestionConfigurations: Maybe<IngestionConfigurationList>;
     /** Retrieve a list of schemas for structured data ingestions */
     readonly schemas: Maybe<SchemaList>;
 
@@ -3366,6 +3706,10 @@ declare module 'veritone-types' {
 
     readonly collection: Collection;
 
+    readonly collectionMention: CollectionMention;
+    /** Retrieve a list of collection mentions Specify at least one of folderId or mentionId */
+    readonly collectionMentions: CollectionMentionList;
+
     readonly mentions: Maybe<MentionList>;
     /** Retrieves engine results by TDO and engine ID or by job ID. */
     readonly engineResults: Maybe<EngineResultList>;
@@ -3383,20 +3727,34 @@ declare module 'veritone-types' {
     readonly event: Event;
     /** Retrieve a list of events by application */
     readonly events: EventList;
+    /** Retrieve a list of subscriptions by organization */
+    readonly eventSubscriptions: EventSubscriptionList;
+
+    readonly eventSubscription: EventSubscription;
     /** This query returns information about time zones recognized by this server. The information is static and does not change. */
     readonly timeZones: ReadonlyArray<TimeZone>;
     /** Examine entries from the audit log. All operations that modify data are written to the audit log. Only entries for the user's own organization can be queried. All queries are bracketed by a time window. A default time window is applied if the `toDateTime` and/or `fromDateTime` parameters are not provided. The maximum time window length is 30 days. Only Veritone and organization administrators can use this query. */
     readonly auditLog: AuditLogEntryList;
-
+    /** Get the media share by media shareId */
     readonly mediaShare: MediaShare;
+    /** Retrieve a shared collection */
+    readonly sharedCollection: Maybe<SharedCollection>;
+    /** Retrieve shared collection history records */
+    readonly sharedCollectionHistory: SharedCollectionHistoryList;
     /** Retrieve Veritone Workflow instance status by id */
     readonly workflowRuntime: WorkflowRuntimeResponse;
     /** Get a specific workflowRuntimeData based on dataKey */
     readonly workflowRuntimeStorageData: WorkflowRuntimeStorageDataList;
     /** Get list process templates by id or current organizationId */
     readonly processTemplates: ProcessTemplateList;
+    /** Get process templates by id */
+    readonly processTemplate: ProcessTemplate;
     /** Get creative by id with current organizationId */
     readonly creative: Creative;
+    /** Retrieve list of engine classes */
+    readonly engineClasses: Maybe<EngineClassList>;
+    /** Retrieve a specific engine class */
+    readonly engineClass: Maybe<EngineClass>;
     /** Retrieve a single schedule */
     readonly scheduledJob: Maybe<ScheduledJob>;
     /** Retrieve or search for schedules */
@@ -3445,6 +3803,8 @@ declare module 'veritone-types' {
     readonly externalCredentials: ExternalCredentialList;
 
     readonly tasks: Maybe<TaskList>;
+    /** matching cluster tags in use by this organization */
+    readonly clusterTags: ReadonlyArray<string>;
   }
 
   export interface TdoList extends Page {
@@ -3476,6 +3836,8 @@ declare module 'veritone-types' {
     readonly mediaId: Maybe<string>;
     /** An optional URL for a thumbnail or preview image for this object. If the URL is to an object in Veritone's object storage, it will be signed. */
     readonly thumbnailUrl: Maybe<string>;
+    /** An optional URL for a preview asset for this document object. If the URL is to an object in Veritone's object storage, it will be signed. */
+    readonly previewUrl: Maybe<string>;
     /** An optional URL for a source image for this object. If the URL is to an object in Veritone's object storage, it will be signed. */
     readonly sourceImageUrl: Maybe<string>;
     /** Modular metadata */
@@ -3486,6 +3848,8 @@ declare module 'veritone-types' {
     readonly details: Maybe<Json>;
     /** Assets this object contains. Can be of any size. This field does not support paging. */
     readonly assets: Maybe<AssetList>;
+
+    readonly assetCount: number;
     /** Retrieve the primary asset of a given type */
     readonly primaryAsset: Maybe<Asset>;
     /** Security settings for the asset container */
@@ -3496,8 +3860,12 @@ declare module 'veritone-types' {
     readonly stopDateTime: DateTime;
 
     readonly source: Maybe<string>;
-    /** Application this recording belongs to */
+    /** The "application ID" of the organization that owns this TDO. Maps directly to an organization ID. */
     readonly applicationId: string;
+    /** The ID of the organization that owns this TDO. */
+    readonly organizationId: string;
+    /** The organization that owns this TDO */
+    readonly organization: Maybe<Organization>;
     /** status. Downloaded, recording, etc. */
     readonly status: Maybe<string>;
     /** Tasks running against this TemporalDataObject */
@@ -3512,6 +3880,10 @@ declare module 'veritone-types' {
     readonly streams: ReadonlyArray<TdoStreamData>;
     /** Statuses of the engines run on the TDO. */
     readonly engineRuns: Maybe<EngineRunList>;
+    /** If this is a segmented TDO, returns the stream manifest contents in normalized JSON form. */
+    readonly streamManifest: Maybe<TdoStreamManifest>;
+    /** Indicates whether or not media contained in this TDO is public (accessible to all orgs). */
+    readonly isPublic: Maybe<boolean>;
   }
 
   export interface AssetList extends Page {
@@ -3548,9 +3920,9 @@ declare module 'veritone-types' {
     readonly uri: Maybe<string>;
     /** A signed version of the asset's URI */
     readonly signedUri: Maybe<string>;
-    /** The asset type, such as `media`, `transcript`, or `text`. The asset type determines which engines are able to operate on it. For example, a transcription engine requires a `media` asset. Engines that record their results in an asset typically set the type accordingly, such as `transcript`. */
+    /** deprecated - use assetType */
     readonly type: string;
-    /** Deprecated alias for type */
+    /** The asset type, such as `media`, `transcript`, or `text`. The asset type determines which engines are able to operate on it. For example, a transcription engine requires a `media` asset. Engines that record their results in an asset typically set the type accordingly, such as `vtn-standard`. See https://docs.veritone.com/#/apis/tutorials/asset-types for supported values. */
     readonly assetType: Maybe<string>;
     /** Freeform application-defined metadata. This field may contain information specific to the object type, such as image or video metadata. */
     readonly details: Maybe<Json>;
@@ -3574,6 +3946,8 @@ declare module 'veritone-types' {
     readonly size: Maybe<number>;
     /** Original file URI, if provided on asset creation */
     readonly originalFileUri: Maybe<string>;
+    /** Media duration in milliseconds */
+    readonly mediaDurationMs: Maybe<number>;
   }
 
   /** A structure containing metadata about the source engine and task for an asset. */
@@ -3682,6 +4056,10 @@ declare module 'veritone-types' {
     readonly standbyForTask: Maybe<Task>;
     /** Contains metadata used by the platform run-time system to execute the task. This field is accessible only to platform components. */
     readonly runtimePayload: Maybe<Json>;
+    /** Failure reason code. This will be set only if the task final status was `failed`. */
+    readonly failureReason: Maybe<TaskFailureReason>;
+    /** Failure message from the engine. This will be set only if the task final status was `failed` and `failureReason` is set. */
+    readonly failureMessage: Maybe<string>;
 
     readonly engineConfiguration: Maybe<EngineConfiguration>;
 
@@ -3786,6 +4164,12 @@ declare module 'veritone-types' {
     readonly supportedScheduleTypes: Maybe<ReadonlyArray<EngineScheduleType>>;
     /** Retrieve task metrics for the engine */
     readonly taskMetrics: Maybe<EngineTaskMetrics>;
+    /** List of use cases the engine serves */
+    readonly useCases: Maybe<ReadonlyArray<string>>;
+    /** List of industries where the capabilities of the engine can be applied */
+    readonly industries: Maybe<ReadonlyArray<string>>;
+    /** Generic Manifest for the engine based on data supplied during onboarding */
+    readonly manifest: Maybe<Json>;
   }
 
   export interface Organization {
@@ -3833,6 +4217,10 @@ declare module 'veritone-types' {
     readonly internalApplicationId: Maybe<string>;
     /** The number of active seats */
     readonly seats: Maybe<number>;
+    /** The amount of media uploaded by this org in milliseconds */
+    readonly mediaUsageMs: Maybe<number>;
+    /** Retrieve integration config of organization by integration id */
+    readonly integrationConfig: Maybe<IntegrationConfig>;
   }
 
   export interface ApplicationList extends Page {
@@ -3882,6 +4270,8 @@ declare module 'veritone-types' {
     readonly contextMenuExtensions: Maybe<ContextMenuExtensionList>;
 
     readonly validStateActions: Maybe<ReadonlyArray<Maybe<ApplicationStateAction>>>;
+
+    readonly components: Maybe<ApplicationComponent>;
   }
 
   export interface ContextMenuExtensionList {
@@ -3895,28 +4285,36 @@ declare module 'veritone-types' {
   }
 
   export interface ContextMenuExtension {
-    readonly id: string;
+    /** context menu extension id */
+    readonly id: Maybe<string>;
 
-    readonly label: string;
+    readonly label: Maybe<string>;
 
-    readonly url: string;
+    readonly url: Maybe<string>;
+
+    readonly type: Maybe<string>;
   }
 
-  /** A role signifies a user's permissions within a given context. */
-  export interface Role {
-    readonly description: Maybe<string>;
+  export interface ApplicationComponent {
+    readonly engines: Maybe<EngineList>;
 
-    readonly appName: Maybe<string>;
+    readonly dataRegistries: Maybe<DataRegistryList>;
 
-    readonly name: string;
-
-    readonly permissions: Maybe<PermissionList>;
-
-    readonly id: string;
+    readonly contextMenuExtensions: Maybe<ReadonlyArray<Maybe<ContextMenuExtension>>>;
   }
 
-  export interface PermissionList extends Page {
-    readonly records: Maybe<ReadonlyArray<Maybe<Permission>>>;
+  export interface EngineList extends Page {
+    readonly records: Maybe<ReadonlyArray<Maybe<Engine>>>;
+    /** Number of records returned in this response */
+    readonly count: number;
+    /** The starting index for records that were returned in this query. */
+    readonly offset: number;
+
+    readonly limit: number;
+  }
+
+  export interface DataRegistryList extends Page {
+    readonly records: Maybe<ReadonlyArray<Maybe<DataRegistry>>>;
     /** The starting index for records that were returned in this query. */
     readonly offset: number;
     /** Maximum number of results that were retrieved in this query; page size */
@@ -3925,22 +4323,74 @@ declare module 'veritone-types' {
     readonly count: Maybe<number>;
   }
 
-  export interface Permission {
+  export interface DataRegistry {
     readonly id: string;
 
     readonly name: Maybe<string>;
 
     readonly description: Maybe<string>;
+
+    readonly source: Maybe<string>;
+
+    readonly schemas: Maybe<SchemaList>;
+    /** The organization that owns this data registry. */
+    readonly organization: Maybe<Organization>;
+
+    readonly organizationId: Maybe<string>;
+
+    readonly createdBy: Maybe<User>;
+
+    readonly modifiedBy: Maybe<User>;
+
+    readonly createdDateTime: Maybe<DateTime>;
+
+    readonly modifiedDateTime: Maybe<DateTime>;
+    /** The currently published schema version for convenient access. This field will be empty if there is no published schema. */
+    readonly publishedSchema: Maybe<Schema>;
+
+    readonly ingestionToken: Maybe<string>;
   }
 
-  export interface UserList extends Page {
-    readonly records: Maybe<ReadonlyArray<Maybe<User>>>;
+  export interface SchemaList extends Page {
+    readonly records: Maybe<ReadonlyArray<Maybe<Schema>>>;
     /** The starting index for records that were returned in this query. */
     readonly offset: number;
     /** Maximum number of results that were retrieved in this query; page size */
     readonly limit: number;
     /** Number of records returned in this response */
     readonly count: Maybe<number>;
+  }
+
+  export interface Schema {
+    readonly id: string;
+
+    readonly dataRegistryId: string;
+
+    readonly dataRegistry: Maybe<DataRegistry>;
+
+    readonly definition: Maybe<Json>;
+
+    readonly majorVersion: number;
+
+    readonly minorVersion: number;
+
+    readonly createdBy: Maybe<User>;
+
+    readonly modifiedBy: Maybe<User>;
+
+    readonly createdDateTime: Maybe<DateTime>;
+
+    readonly modifiedDateTime: Maybe<DateTime>;
+
+    readonly status: Maybe<SchemaStatus>;
+    /** List of status the Schema can transition to. */
+    readonly validActions: Maybe<ReadonlyArray<Maybe<SchemaAction>>>;
+    /** SDOs under this schema */
+    readonly structuredDataObjects: Maybe<StructuredDataList>;
+    /** The organization that owns this schema. */
+    readonly organization: Maybe<Organization>;
+    /** The Id of the organization that owns this schema. */
+    readonly organizationId: Maybe<string>;
   }
 
   /** A user represents a user account within an organization. */
@@ -3987,6 +4437,37 @@ declare module 'veritone-types' {
     readonly imageUrl: Maybe<string>;
     /** Status of user account */
     readonly status: Maybe<UserStatus>;
+  }
+
+  export interface PermissionList extends Page {
+    readonly records: Maybe<ReadonlyArray<Maybe<Permission>>>;
+    /** The starting index for records that were returned in this query. */
+    readonly offset: number;
+    /** Maximum number of results that were retrieved in this query; page size */
+    readonly limit: number;
+    /** Number of records returned in this response */
+    readonly count: Maybe<number>;
+  }
+
+  export interface Permission {
+    readonly id: string;
+
+    readonly name: Maybe<string>;
+
+    readonly description: Maybe<string>;
+  }
+
+  /** A role signifies a user's permissions within a given context. */
+  export interface Role {
+    readonly description: Maybe<string>;
+
+    readonly appName: Maybe<string>;
+
+    readonly name: string;
+
+    readonly permissions: Maybe<PermissionList>;
+
+    readonly id: string;
   }
 
   export interface UserAcl {
@@ -4048,6 +4529,8 @@ declare module 'veritone-types' {
     readonly folderPath: Maybe<ReadonlyArray<Folder>>;
     /** TemporalDataObjects that are filed in this folder */
     readonly childTDOs: Maybe<TdoList>;
+    /** Watchlists that are filed in this folder */
+    readonly childWatchlists: Maybe<WatchlistList>;
     /** The read/write permissions for a shared folder */
     readonly sharedAccess: Maybe<ReadonlyArray<Maybe<string>>>;
 
@@ -4064,306 +4547,6 @@ declare module 'veritone-types' {
     readonly limit: number;
     /** Number of records returned in this response */
     readonly count: Maybe<number>;
-  }
-
-  export interface SharedWith {
-    /** List of organizationIds that have read access to this object */
-    readonly read: Maybe<ReadonlyArray<Maybe<number>>>;
-    /** List of organizationIds that have write access to this object */
-    readonly write: Maybe<ReadonlyArray<Maybe<number>>>;
-  }
-
-  export interface FolderContentTemplate {
-    readonly id: string;
-
-    readonly folderId: string;
-
-    readonly sdoId: string;
-
-    readonly sdo: Maybe<StructuredData>;
-
-    readonly schemaId: string;
-
-    readonly data: Maybe<Json>;
-
-    readonly createdDateTime: Maybe<DateTime>;
-
-    readonly modifiedDateTime: Maybe<DateTime>;
-  }
-
-  export interface StructuredData {
-    /** The ID */
-    readonly id: string;
-    /** Id of the schema used to validate this object */
-    readonly schemaId: string;
-    /** The schema used to validate this object */
-    readonly schema: Maybe<Schema>;
-
-    readonly data: Maybe<Json>;
-
-    readonly dataString: Maybe<string>;
-
-    readonly createdDateTime: Maybe<DateTime>;
-
-    readonly modifiedDateTime: Maybe<DateTime>;
-  }
-
-  export interface Schema {
-    readonly id: string;
-
-    readonly dataRegistryId: string;
-
-    readonly dataRegistry: Maybe<DataRegistry>;
-
-    readonly definition: Maybe<Json>;
-
-    readonly majorVersion: number;
-
-    readonly minorVersion: number;
-
-    readonly createdBy: Maybe<User>;
-
-    readonly modifiedBy: Maybe<User>;
-
-    readonly createdDateTime: Maybe<DateTime>;
-
-    readonly modifiedDateTime: Maybe<DateTime>;
-
-    readonly status: Maybe<SchemaStatus>;
-    /** List of status the Schema can transition to. */
-    readonly validActions: Maybe<ReadonlyArray<Maybe<SchemaAction>>>;
-    /** SDOs under this schema */
-    readonly structuredDataObjects: Maybe<StructuredDataList>;
-    /** The organization that owns this schema. */
-    readonly organization: Maybe<Organization>;
-    /** The Id of the organization that owns this schema. */
-    readonly organizationId: Maybe<string>;
-  }
-
-  export interface DataRegistry {
-    readonly id: string;
-
-    readonly name: Maybe<string>;
-
-    readonly description: Maybe<string>;
-
-    readonly source: Maybe<string>;
-
-    readonly schemas: Maybe<SchemaList>;
-    /** The organization that owns this data registry. */
-    readonly organization: Maybe<Organization>;
-
-    readonly organizationId: Maybe<string>;
-
-    readonly createdBy: Maybe<User>;
-
-    readonly modifiedBy: Maybe<User>;
-
-    readonly createdDateTime: Maybe<DateTime>;
-
-    readonly modifiedDateTime: Maybe<DateTime>;
-    /** The currently published schema version for convenient access. This field will be empty if there is no published schema. */
-    readonly publishedSchema: Maybe<Schema>;
-
-    readonly ingestionToken: Maybe<string>;
-  }
-
-  export interface SchemaList extends Page {
-    readonly records: Maybe<ReadonlyArray<Maybe<Schema>>>;
-    /** The starting index for records that were returned in this query. */
-    readonly offset: number;
-    /** Maximum number of results that were retrieved in this query; page size */
-    readonly limit: number;
-    /** Number of records returned in this response */
-    readonly count: Maybe<number>;
-  }
-
-  export interface StructuredDataList extends Page {
-    readonly records: Maybe<ReadonlyArray<Maybe<StructuredData>>>;
-
-    readonly count: Maybe<number>;
-
-    readonly offset: number;
-
-    readonly limit: number;
-
-    readonly owned: Maybe<boolean>;
-
-    readonly orderBy: Maybe<ReadonlyArray<StructuredDataOrderByType>>;
-  }
-
-  export interface StructuredDataOrderByType {
-    readonly field: StructuredDataOrderByField;
-
-    readonly direction: OrderDirection;
-  }
-
-  /** Type that holds multi-factor authentication for a user */
-  export interface MfaInfo {
-    readonly phoneNumber: Maybe<string>;
-
-    readonly smsVoiceVerifiedDateTime: Maybe<DateTime>;
-
-    readonly gaVerifiedDateTime: Maybe<DateTime>;
-
-    readonly defaultOption: Maybe<string>;
-
-    readonly pendingRegistration: Maybe<string>;
-  }
-
-  /** Type that holds user setting for a user */
-  export interface UserSetting {
-    readonly key: Maybe<string>;
-
-    readonly value: Maybe<string>;
-  }
-
-  export interface EngineBlacklist {
-    readonly organizationId: string;
-
-    readonly engines: Maybe<ReadonlyArray<Maybe<Engine>>>;
-
-    readonly engineCategories: Maybe<ReadonlyArray<Maybe<EngineCategory>>>;
-  }
-
-  export interface EngineCategory {
-    readonly id: string;
-
-    readonly name: Maybe<string>;
-
-    readonly description: Maybe<string>;
-
-    readonly type: Maybe<EngineType>;
-
-    readonly createdDateTime: Maybe<DateTime>;
-
-    readonly modifiedDateTime: Maybe<DateTime>;
-
-    readonly createdBy: Maybe<string>;
-
-    readonly modifiedBy: Maybe<string>;
-    /** The list of IDs of engines in this category */
-    readonly engineIds: Maybe<ReadonlyArray<string>>;
-
-    readonly totalEngines: Maybe<number>;
-
-    readonly iconClass: Maybe<string>;
-
-    readonly editable: Maybe<boolean>;
-
-    readonly videoOnly: Maybe<boolean>;
-
-    readonly color: Maybe<string>;
-    /** The list of engines in this category */
-    readonly engines: Maybe<EngineList>;
-    /** If the engine category is integrated with libraries, this field contains the list of IDs of entity identifier types that the engine category is compatible with. */
-    readonly libraryEntityIdentifierTypeIds: Maybe<ReadonlyArray<string>>;
-    /** If the engine category is integrated with libraries, this field contains the list of entity identifier types that the engine category is compatible with. */
-    readonly libraryEntityIdentifierTypes: Maybe<EntityIdentifierTypeList>;
-    /** A type for the engine category. Multiple engine categories with common elements can share a categoryType. This information is used to compute dependencies and format user interface elements. */
-    readonly categoryType: Maybe<string>;
-    /** An optional key used to identify this engine category's results for search and other purposes. Primarily used by Veritone platform applications. */
-    readonly categoryMetadataKey: Maybe<string>;
-    /** A list of categoryTypes on which instances of this engine category depend. */
-    readonly dependencies: Maybe<ReadonlyArray<EngineDependency>>;
-    /** Information about how engine results in this category can be searched in Veritone platform applications. Used primarily by Veritone platform applications. */
-    readonly searchConfiguration: Maybe<EngineSearchConfiguration>;
-    /** List of engine result export formats supported by engines in this category. May be empty. */
-    readonly exportFormats: ReadonlyArray<Maybe<ExportFormat>>;
-  }
-
-  export interface EngineType {
-    readonly name: Maybe<string>;
-
-    readonly description: Maybe<string>;
-  }
-
-  export interface EngineList extends Page {
-    readonly records: Maybe<ReadonlyArray<Maybe<Engine>>>;
-    /** Number of records returned in this response */
-    readonly count: number;
-    /** The starting index for records that were returned in this query. */
-    readonly offset: number;
-
-    readonly limit: number;
-  }
-
-  export interface EntityIdentifierTypeList extends Page {
-    readonly records: Maybe<ReadonlyArray<EntityIdentifierType>>;
-
-    readonly limit: number;
-
-    readonly offset: number;
-
-    readonly count: Maybe<number>;
-  }
-
-  export interface EntityIdentifierType {
-    readonly id: string;
-
-    readonly label: string;
-
-    readonly labelPlural: string;
-
-    readonly iconClass: Maybe<string>;
-
-    readonly description: Maybe<string>;
-
-    readonly dataType: EntityIdentifierDataType;
-  }
-
-  export interface EngineDependency {
-    /** TODO maps to values in engineCategory.data_field? Must be a valid categoryType from an existing EngineCategory. */
-    readonly dependencyType: string;
-    /** Asset type to expect previous engine to produce */
-    readonly assetType: Maybe<string>;
-    /** The engine category corresponding to this dependency */
-    readonly category: Maybe<EngineCategory>;
-  }
-
-  /** Represents configuration on how the results of engines within a given category are indexed and searched. Primarily used by Veritone platform applications. */
-  export interface EngineSearchConfiguration {
-    /** Autocomplete field information is used to tell client applications what fields are searchable by autocomplete in the search index and how to search for them. */
-    readonly autocompleteFields: Maybe<ReadonlyArray<AutocompleteFieldConfig>>;
-    /** Autocomplete field information is used to tell client applications what fields are searchable in the search index and how to search for them. */
-    readonly searchFields: Maybe<ReadonlyArray<SearchFieldConfig>>;
-    /** Indicates whether or not search is available for results produced by engines in this category can be searched. */
-    readonly isSearchEnabled: Maybe<boolean>;
-    /** Indicates whether or not search is available for results produced by engines in this category can be searched within the Elasticsearch index. */
-    readonly isElasticEnabled: Maybe<boolean>;
-
-    readonly searchMetadataKey: Maybe<string>;
-
-    readonly elasticType: Maybe<string>;
-  }
-
-  export interface AutocompleteFieldConfig {
-    readonly autocompleteField: Maybe<string>;
-
-    readonly indexField: Maybe<string>;
-  }
-
-  export interface SearchFieldConfig {
-    readonly searchField: Maybe<string>;
-
-    readonly indexField: Maybe<string>;
-  }
-
-  export interface ExportFormat {
-    /** The file format/extension i.e. ttml, vlf, etc. */
-    readonly format: string;
-    /** A human readable label for the file format i.e. "Time Text Markup Language" */
-    readonly label: string;
-    /** A list types to categories the file format by i.e. "subtitle" */
-    readonly types: ReadonlyArray<Maybe<string>>;
-  }
-
-  export interface EngineWhitelist {
-    readonly organizationId: string;
-
-    readonly engines: Maybe<ReadonlyArray<Maybe<Engine>>>;
-
-    readonly engineCategories: Maybe<ReadonlyArray<Maybe<EngineCategory>>>;
   }
 
   export interface WatchlistList extends Page {
@@ -4423,6 +4606,10 @@ declare module 'veritone-types' {
     readonly brand: Maybe<Json>;
     /** creative associated with the watchlist */
     readonly creative: Maybe<Creative>;
+    /** The reference to the watchlist in a folder */
+    readonly treeObjectId: Maybe<string>;
+    /** Indicates whether or not the watchlist should be disabled. The Veritone platform can administratively disable watchlists if the search scope as measured in number of mentions exceeds organization limits. The owner can then modify the watchlist parameters to reduce the scope and re-enable the watchlist. */
+    readonly isDisabled: Maybe<boolean>;
     /** Contains the list of all source type IDs associated with this watchlist, including those for sources on schedules. */
     readonly combinedSourceTypeIds: Maybe<ReadonlyArray<string>>;
 
@@ -4583,6 +4770,10 @@ declare module 'veritone-types' {
     readonly publicNote: Maybe<string>;
 
     readonly campaign: Maybe<Campaign>;
+
+    readonly createdDateTime: Maybe<DateTime>;
+
+    readonly modifiedDateTime: Maybe<DateTime>;
   }
 
   export interface MentionSnippets {
@@ -4951,6 +5142,23 @@ declare module 'veritone-types' {
     readonly modifiedDateTime: Maybe<DateTime>;
   }
 
+  export interface StructuredData {
+    /** The ID */
+    readonly id: string;
+    /** Id of the schema used to validate this object */
+    readonly schemaId: string;
+    /** The schema used to validate this object */
+    readonly schema: Maybe<Schema>;
+
+    readonly data: Maybe<Json>;
+
+    readonly dataString: Maybe<string>;
+
+    readonly createdDateTime: Maybe<DateTime>;
+
+    readonly modifiedDateTime: Maybe<DateTime>;
+  }
+
   export interface SourceCollaboratorList extends Page {
     readonly records: ReadonlyArray<SourceCollaborator>;
 
@@ -4988,7 +5196,7 @@ declare module 'veritone-types' {
   export interface Cluster {
     readonly id: string;
 
-    readonly nodes: Maybe<ReadonlyArray<Maybe<ClusterNode>>>;
+    readonly nodes: Maybe<ClusterNodeList>;
 
     readonly name: Maybe<string>;
 
@@ -5021,6 +5229,44 @@ declare module 'veritone-types' {
     readonly bypassAllowedEngines: Maybe<boolean>;
 
     readonly collaborators: Maybe<ClusterCollaboratorList>;
+    /** Retrieve jobs */
+    readonly jobs: JobList;
+
+    readonly tasks: TaskList;
+    /** Retrieve current subscriptions for events on this cluster. */
+    readonly subscriptions: ClusterSubscriptionList;
+    /** Retrieve tags for this cluster */
+    readonly tags: Maybe<ReadonlyArray<string>>;
+    /** Retrieve the cluster's current status */
+    readonly status: ClusterStatus;
+    /** Cluster configuration overrides */
+    readonly clusterConfig: Maybe<Json>;
+    /** State information about the cluster, conforming to a stable schema. */
+    readonly state: Maybe<Json>;
+    /** Date and time at which the state was last updated the system. */
+    readonly stateLastUpdatedDateTime: Maybe<DateTime>;
+    /** media storage option */
+    readonly mediaStorage: MediaStorageOption;
+    /** media storage path -- applies to edge only */
+    readonly mediaStoragePath: Maybe<string>;
+    /** ID of the management node. Applies to portable/edge clusters only. */
+    readonly managementNodeID: Maybe<string>;
+    /** Optionally, specify a time at which the edge cluster should be restarted daily. Applies only to edge clusters. */
+    readonly restartTimeUTC: Maybe<Time>;
+    /** Retrieve the cluster's service token */
+    readonly serviceToken: Maybe<string>;
+    /** Cluster deployment process status */
+    readonly targetStatus: Maybe<ClusterStatus>;
+  }
+
+  export interface ClusterNodeList extends Page {
+    readonly records: Maybe<ReadonlyArray<Maybe<ClusterNode>>>;
+
+    readonly count: number;
+
+    readonly offset: number;
+
+    readonly limit: number;
   }
 
   export interface ClusterNode {
@@ -5031,6 +5277,16 @@ declare module 'veritone-types' {
     readonly cluster: Maybe<Cluster>;
 
     readonly name: Maybe<string>;
+
+    readonly metrics: Maybe<Json>;
+    /** Cluster configuration overrides */
+    readonly nodeConfig: Maybe<Json>;
+
+    readonly paused: Maybe<boolean>;
+
+    readonly createdDateTime: Maybe<DateTime>;
+
+    readonly modifiedDateTime: Maybe<DateTime>;
   }
 
   export interface ClusterCollaboratorList extends Page {
@@ -5113,6 +5369,30 @@ declare module 'veritone-types' {
     readonly limit: number;
     /** Number of records returned in this response */
     readonly count: Maybe<number>;
+  }
+
+  export interface ClusterSubscriptionList extends Page {
+    readonly records: ReadonlyArray<ClusterSubscription>;
+
+    readonly count: number;
+
+    readonly offset: number;
+
+    readonly limit: number;
+  }
+
+  export interface ClusterSubscription {
+    readonly userId: string;
+
+    readonly emailAddress: string;
+
+    readonly id: string;
+
+    readonly createdDateTime: DateTime;
+
+    readonly modifiedDateTime: DateTime;
+
+    readonly isActive: boolean;
   }
 
   export interface SchedulePart {
@@ -5273,6 +5553,243 @@ declare module 'veritone-types' {
     readonly limit: number;
   }
 
+  export interface SharedWith {
+    /** List of organizationIds that have read access to this object */
+    readonly read: Maybe<ReadonlyArray<Maybe<number>>>;
+    /** List of organizationIds that have write access to this object */
+    readonly write: Maybe<ReadonlyArray<Maybe<number>>>;
+  }
+
+  export interface FolderContentTemplate {
+    readonly id: string;
+
+    readonly folderId: string;
+
+    readonly sdoId: string;
+
+    readonly sdo: Maybe<StructuredData>;
+
+    readonly schemaId: string;
+
+    readonly data: Maybe<Json>;
+
+    readonly createdDateTime: Maybe<DateTime>;
+
+    readonly modifiedDateTime: Maybe<DateTime>;
+  }
+
+  /** Type that holds multi-factor authentication for a user */
+  export interface MfaInfo {
+    readonly phoneNumber: Maybe<string>;
+
+    readonly smsVoiceVerifiedDateTime: Maybe<DateTime>;
+
+    readonly gaVerifiedDateTime: Maybe<DateTime>;
+
+    readonly defaultOption: Maybe<string>;
+
+    readonly pendingRegistration: Maybe<string>;
+  }
+
+  /** Type that holds user setting for a user */
+  export interface UserSetting {
+    readonly key: Maybe<string>;
+
+    readonly value: Maybe<string>;
+  }
+
+  export interface StructuredDataList extends Page {
+    readonly records: Maybe<ReadonlyArray<Maybe<StructuredData>>>;
+
+    readonly count: Maybe<number>;
+
+    readonly offset: number;
+
+    readonly limit: number;
+
+    readonly owned: Maybe<boolean>;
+
+    readonly orderBy: Maybe<ReadonlyArray<StructuredDataOrderByType>>;
+  }
+
+  export interface StructuredDataOrderByType {
+    readonly field: StructuredDataOrderByField;
+
+    readonly direction: OrderDirection;
+  }
+
+  export interface UserList extends Page {
+    readonly records: Maybe<ReadonlyArray<Maybe<User>>>;
+    /** The starting index for records that were returned in this query. */
+    readonly offset: number;
+    /** Maximum number of results that were retrieved in this query; page size */
+    readonly limit: number;
+    /** Number of records returned in this response */
+    readonly count: Maybe<number>;
+  }
+
+  export interface EngineBlacklist {
+    readonly organizationId: string;
+
+    readonly engines: Maybe<ReadonlyArray<Maybe<Engine>>>;
+
+    readonly engineCategories: Maybe<ReadonlyArray<Maybe<EngineCategory>>>;
+  }
+
+  export interface EngineCategory {
+    readonly id: string;
+
+    readonly name: Maybe<string>;
+
+    readonly description: Maybe<string>;
+
+    readonly type: Maybe<EngineType>;
+    /** The engine class the engine category belongs to */
+    readonly class: Maybe<EngineClass>;
+
+    readonly createdDateTime: Maybe<DateTime>;
+
+    readonly modifiedDateTime: Maybe<DateTime>;
+
+    readonly createdBy: Maybe<string>;
+
+    readonly modifiedBy: Maybe<string>;
+    /** The list of IDs of engines in this category */
+    readonly engineIds: Maybe<ReadonlyArray<string>>;
+
+    readonly totalEngines: Maybe<number>;
+
+    readonly iconClass: Maybe<string>;
+
+    readonly editable: Maybe<boolean>;
+
+    readonly videoOnly: Maybe<boolean>;
+
+    readonly color: Maybe<string>;
+    /** The list of engines in this category */
+    readonly engines: Maybe<EngineList>;
+    /** If the engine category is integrated with libraries, this field contains the list of IDs of entity identifier types that the engine category is compatible with. */
+    readonly libraryEntityIdentifierTypeIds: Maybe<ReadonlyArray<string>>;
+    /** If the engine category is integrated with libraries, this field contains the list of entity identifier types that the engine category is compatible with. */
+    readonly libraryEntityIdentifierTypes: Maybe<EntityIdentifierTypeList>;
+    /** A type for the engine category. Multiple engine categories with common elements can share a categoryType. This information is used to compute dependencies and format user interface elements. */
+    readonly categoryType: Maybe<string>;
+    /** An optional key used to identify this engine category's results for search and other purposes. Primarily used by Veritone platform applications. */
+    readonly categoryMetadataKey: Maybe<string>;
+    /** A list of categoryTypes on which instances of this engine category depend. */
+    readonly dependencies: Maybe<ReadonlyArray<EngineDependency>>;
+    /** Information about how engine results in this category can be searched in Veritone platform applications. Used primarily by Veritone platform applications. */
+    readonly searchConfiguration: Maybe<EngineSearchConfiguration>;
+    /** List of engine result export formats supported by engines in this category. May be empty. */
+    readonly exportFormats: ReadonlyArray<Maybe<ExportFormat>>;
+  }
+
+  export interface EngineType {
+    readonly name: Maybe<string>;
+
+    readonly description: Maybe<string>;
+  }
+
+  export interface EngineClass {
+    readonly id: string;
+
+    readonly name: Maybe<string>;
+
+    readonly description: Maybe<string>;
+
+    readonly iconClass: Maybe<string>;
+  }
+
+  export interface EntityIdentifierTypeList extends Page {
+    readonly records: Maybe<ReadonlyArray<EntityIdentifierType>>;
+
+    readonly limit: number;
+
+    readonly offset: number;
+
+    readonly count: Maybe<number>;
+  }
+
+  export interface EntityIdentifierType {
+    readonly id: string;
+
+    readonly label: string;
+
+    readonly labelPlural: string;
+
+    readonly iconClass: Maybe<string>;
+
+    readonly description: Maybe<string>;
+
+    readonly dataType: EntityIdentifierDataType;
+
+    readonly entityIdentifierItems: Maybe<ReadonlyArray<Maybe<EntityIdentifierItem>>>;
+  }
+
+  export interface EntityIdentifierItem {
+    readonly libraryTypeId: string;
+
+    readonly entityIdentifierTypeId: string;
+
+    readonly minItems: Maybe<number>;
+
+    readonly maxItems: Maybe<number>;
+  }
+
+  export interface EngineDependency {
+    /** TODO maps to values in engineCategory.data_field? Must be a valid categoryType from an existing EngineCategory. */
+    readonly dependencyType: string;
+    /** Asset type to expect previous engine to produce */
+    readonly assetType: Maybe<string>;
+    /** The engine category corresponding to this dependency */
+    readonly category: Maybe<EngineCategory>;
+  }
+
+  /** Represents configuration on how the results of engines within a given category are indexed and searched. Primarily used by Veritone platform applications. */
+  export interface EngineSearchConfiguration {
+    /** Autocomplete field information is used to tell client applications what fields are searchable by autocomplete in the search index and how to search for them. */
+    readonly autocompleteFields: Maybe<ReadonlyArray<AutocompleteFieldConfig>>;
+    /** Autocomplete field information is used to tell client applications what fields are searchable in the search index and how to search for them. */
+    readonly searchFields: Maybe<ReadonlyArray<SearchFieldConfig>>;
+    /** Indicates whether or not search is available for results produced by engines in this category can be searched. */
+    readonly isSearchEnabled: Maybe<boolean>;
+    /** Indicates whether or not search is available for results produced by engines in this category can be searched within the Elasticsearch index. */
+    readonly isElasticEnabled: Maybe<boolean>;
+
+    readonly searchMetadataKey: Maybe<string>;
+
+    readonly elasticType: Maybe<string>;
+  }
+
+  export interface AutocompleteFieldConfig {
+    readonly autocompleteField: Maybe<string>;
+
+    readonly indexField: Maybe<string>;
+  }
+
+  export interface SearchFieldConfig {
+    readonly searchField: Maybe<string>;
+
+    readonly indexField: Maybe<string>;
+  }
+
+  export interface ExportFormat {
+    /** The file format/extension i.e. ttml, vlf, etc. */
+    readonly format: string;
+    /** A human readable label for the file format i.e. "Time Text Markup Language" */
+    readonly label: string;
+    /** A list types to categories the file format by i.e. "subtitle" */
+    readonly types: ReadonlyArray<Maybe<string>>;
+  }
+
+  export interface EngineWhitelist {
+    readonly organizationId: string;
+
+    readonly engines: Maybe<ReadonlyArray<Maybe<Engine>>>;
+
+    readonly engineCategories: Maybe<ReadonlyArray<Maybe<EngineCategory>>>;
+  }
+
   export interface CollectionList extends Page {
     readonly records: Maybe<ReadonlyArray<Maybe<Collection>>>;
     /** Provide an offset to skip to a certain element in the result, for paging. */
@@ -5289,7 +5806,7 @@ declare module 'veritone-types' {
     readonly name: string;
     /** A url to get the collection image */
     readonly imageUrl: Maybe<string>;
-    /** A sigend url to get the collection image. It will only be signed if it is an s3 url. */
+    /** A signed url to get the collection image. It will only be signed if it is an s3 url. */
     readonly signedImageUrl: Maybe<string>;
 
     readonly ownerId: Maybe<string>;
@@ -5315,6 +5832,8 @@ declare module 'veritone-types' {
     readonly isActive: Maybe<boolean>;
 
     readonly widgets: Maybe<WidgetList>;
+    /** Get a list of mentions filed in the collection */
+    readonly mentions: Maybe<CollectionMentionList>;
   }
 
   export interface WidgetList extends Page {
@@ -5342,7 +5861,15 @@ declare module 'veritone-types' {
 
     readonly displayCollectionName: Maybe<boolean>;
 
+    readonly displayCollectionDescription: Maybe<boolean>;
+
     readonly displayTranscription: Maybe<boolean>;
+
+    readonly displayMentionDescription: Maybe<boolean>;
+
+    readonly displayMentionIntro: Maybe<boolean>;
+
+    readonly displayLogo: Maybe<boolean>;
 
     readonly width: Maybe<number>;
 
@@ -5358,7 +5885,38 @@ declare module 'veritone-types' {
 
     readonly textColor: Maybe<string>;
 
+    readonly nextButtonColor: Maybe<string>;
+
     readonly createdDateTime: Maybe<DateTime>;
+  }
+
+  export interface CollectionMentionList extends Page {
+    readonly records: Maybe<ReadonlyArray<CollectionMention>>;
+    /** Provide an offset to skip to a certain element in the result, for paging. */
+    readonly offset: number;
+    /** Maximum number of results that were retrieved in this query; page size */
+    readonly limit: number;
+    /** Number of records returned in this response */
+    readonly count: number;
+  }
+
+  export interface CollectionMention {
+    /** id of the collection */
+    readonly folderId: string;
+    /** id of the mention */
+    readonly mentionId: string;
+
+    readonly organizationId: string;
+
+    readonly mention: Mention;
+
+    readonly collection: Collection;
+
+    readonly description: Maybe<string>;
+
+    readonly createdDateTime: Maybe<DateTime>;
+
+    readonly modifiedDateTime: Maybe<DateTime>;
   }
 
   /** Analytics Dashboards */
@@ -5381,6 +5939,16 @@ declare module 'veritone-types' {
     readonly qlikSheetId: Maybe<string>;
 
     readonly thumbnail: Maybe<string>;
+  }
+
+  export interface IntegrationConfig {
+    readonly organizationId: string;
+
+    readonly integrationId: string;
+
+    readonly config: Json;
+
+    readonly userVisible: Maybe<boolean>;
   }
 
   export interface BuildList extends Page {
@@ -5467,6 +6035,8 @@ declare module 'veritone-types' {
     readonly defaultValue: Maybe<string>;
     /** Optional default values to apply to a picklist. This field should only be set for a field of type multi-picklist. */
     readonly defaultValues: Maybe<ReadonlyArray<string>>;
+    /** specifies whether the field is optional */
+    readonly required: Maybe<boolean>;
   }
 
   /** Represents one allowed option in a picklist. */
@@ -5554,6 +6124,12 @@ declare module 'veritone-types' {
     readonly task: Maybe<Task>;
     /** Whether or not the engine run has user edits */
     readonly hasUserEdits: Maybe<boolean>;
+  }
+
+  export interface TdoStreamManifest {
+    readonly segments: Maybe<ReadonlyArray<Json>>;
+
+    readonly initSegment: Maybe<Json>;
   }
 
   export interface CloneRequestList extends Page {
@@ -6037,43 +6613,93 @@ declare module 'veritone-types' {
     readonly folderId: Maybe<string>;
 
     readonly mentionId: Maybe<string>;
+
+    readonly mediaShare: Maybe<MediaShareInfo>;
   }
 
-  /** Results from a mention or media search. TODO link to format documentation for core-search-server */
+  export interface MediaShareInfo {
+    readonly token: string;
+
+    readonly isSegmented: Maybe<boolean>;
+  }
+
+  /** Results from a mention or media search. See https://docs.veritone.com/#/apis/search-quickstart for full details on the search result syntax */
   export interface SearchResult {
     readonly jsondata: Json;
   }
 
-  export interface IngestionConfiguration {
-    readonly id: string;
+  export interface AuditEventList extends Page {
+    readonly records: Maybe<ReadonlyArray<AuditEvent>>;
 
-    readonly applicationId: string;
-
-    readonly type: Maybe<string>;
-
-    readonly name: Maybe<string>;
-
-    readonly createdDateTime: Maybe<DateTime>;
-
-    readonly modifiedDateTime: Maybe<DateTime>;
-
-    readonly emailAddress: Maybe<string>;
-
-    readonly job: Maybe<Json>;
-
-    readonly ui: Maybe<Json>;
-
-    readonly jsondata: Maybe<Json>;
-  }
-
-  export interface IngestionConfigurationList extends Page {
     readonly offset: number;
 
     readonly limit: number;
 
     readonly count: Maybe<number>;
+  }
 
-    readonly records: Maybe<ReadonlyArray<Maybe<IngestionConfiguration>>>;
+  export interface AuditEvent {
+    readonly id: string;
+
+    readonly organizationId: string;
+
+    readonly userId: Maybe<string>;
+    /** The application that created the audit log */
+    readonly application: Maybe<string>;
+
+    readonly payload: Json;
+  }
+
+  export interface FolderOverview {
+    readonly childFoldersCount: number;
+
+    readonly childNonFolderObjectsCount: number;
+
+    readonly treeObjectIds: Maybe<ReadonlyArray<Maybe<string>>>;
+  }
+
+  export interface FolderSummaryDetail {
+    readonly id: string;
+
+    readonly treeObjectId: string;
+
+    readonly typeId: Maybe<number>;
+
+    readonly childFoldersCount: number;
+
+    readonly childNonFolderObjectsCount: number;
+
+    readonly childWatchlistsIds: Maybe<ReadonlyArray<Maybe<string>>>;
+
+    readonly createdBy: Maybe<User>;
+
+    readonly depth: Maybe<number>;
+
+    readonly fingerprints: Maybe<string>;
+
+    readonly marketCount: Maybe<number>;
+
+    readonly trackMyPrograms: Maybe<boolean>;
+
+    readonly mediaSourceTypeIds: Maybe<ReadonlyArray<Maybe<number>>>;
+
+    readonly orderIndex: Maybe<number>;
+
+    readonly parentTreeObjectId: Maybe<string>;
+
+    readonly programCount: Maybe<number>;
+
+    readonly searchTerms: Maybe<ReadonlyArray<Maybe<string>>>;
+
+    readonly trackingUnitName: Maybe<string>;
+
+    readonly trackingUnitStartDate: Maybe<DateTime>;
+
+    readonly trackingUnitStopDate: Maybe<DateTime>;
+
+    readonly createdDateTime: DateTime;
+
+    readonly modifiedDateTime: Maybe<DateTime>;
   }
 
   export interface SchemaPropertyList extends Page {
@@ -6136,16 +6762,6 @@ declare module 'veritone-types' {
     readonly resources: Maybe<Json>;
   }
 
-  export interface DataRegistryList extends Page {
-    readonly records: Maybe<ReadonlyArray<Maybe<DataRegistry>>>;
-    /** The starting index for records that were returned in this query. */
-    readonly offset: number;
-    /** Maximum number of results that were retrieved in this query; page size */
-    readonly limit: number;
-    /** Number of records returned in this response */
-    readonly count: Maybe<number>;
-  }
-
   /** Represents a collection of engine results. Not Paged. */
   export interface EngineResultList {
     readonly sourceId: Maybe<string>;
@@ -6170,6 +6786,8 @@ declare module 'veritone-types' {
     readonly userEdited: Maybe<boolean>;
 
     readonly tdo: Maybe<TemporalDataObject>;
+
+    readonly taskId: Maybe<string>;
   }
 
   /** Contains information of a event hook */
@@ -6282,6 +6900,35 @@ declare module 'veritone-types' {
     readonly count: Maybe<number>;
   }
 
+  export interface EventSubscriptionList extends Page {
+    readonly records: Maybe<ReadonlyArray<Maybe<EventSubscription>>>;
+    /** The starting index for records that were returned in this query. */
+    readonly offset: number;
+
+    readonly limit: number;
+    /** Number of records returned in this response */
+    readonly count: Maybe<number>;
+  }
+
+  export interface EventSubscription {
+    /** The event subscription id */
+    readonly id: string;
+    /** The organization id */
+    readonly organizationId: string;
+    /** The event name such as `MentionGenerated`, `JobCompleted`, etc. */
+    readonly eventName: string;
+    /** The event type such as `mention`, `job`, etc */
+    readonly eventType: string;
+    /** The target of the event */
+    readonly targetName: string;
+    /** The params that will be used by the consumer of the event */
+    readonly consumerParams: Json;
+    /** The subscription hash */
+    readonly subscriptionHash: string;
+    /** The created date time of the event subscription */
+    readonly createdDateTime: DateTime;
+  }
+
   /** Information about a time zone */
   export interface TimeZone {
     /** Time zone name, such as `America/Los_Angeles` */
@@ -6361,6 +7008,67 @@ declare module 'veritone-types' {
     readonly settings: Maybe<Json>;
   }
 
+  export interface SharedCollection {
+    readonly name: Maybe<string>;
+
+    readonly image: Maybe<string>;
+
+    readonly folderId: Maybe<string>;
+
+    readonly folderTypeId: Maybe<string>;
+
+    readonly organizationId: Maybe<string>;
+
+    readonly programCount: Maybe<number>;
+
+    readonly shareInfo: Maybe<Share>;
+
+    readonly mentions: Maybe<SharedMentionList>;
+  }
+
+  export interface SharedMentionList extends Page {
+    readonly records: Maybe<ReadonlyArray<Maybe<SharedMention>>>;
+    /** The starting index for records that were returned in this query. */
+    readonly offset: number;
+
+    readonly limit: number;
+    /** Number of records returned in this response */
+    readonly count: Maybe<number>;
+  }
+
+  export interface SharedCollectionHistoryList extends Page {
+    /** Count of records in this page. Will be less than or equal to `limit`. */
+    readonly count: Maybe<number>;
+    /** Offset used in the query that generated this page. */
+    readonly offset: number;
+    /** Limit used in the query that generated this page. */
+    readonly limit: number;
+    /** List of shared collection history records */
+    readonly records: Maybe<ReadonlyArray<Maybe<SharedCollectionHistory>>>;
+  }
+
+  /** Provides status information on the creation or update of a shared collection. */
+  export interface SharedCollectionHistory {
+    /** History ID */
+    readonly id: string;
+    /** Type of history record, New, AddMention, or RemoveMention */
+    readonly type: string;
+    /** The folder ID for the new or updated shared collection */
+    readonly folderId: string;
+    /** The share ID of the shared collection */
+    readonly shareId: string;
+    /** The status of the shared collection creation or update Options: New, InProgress, Complete, Failed */
+    readonly status: SharedCollectionHistoryStatus;
+
+    readonly mentionId: Maybe<string>;
+    /** Number of times the creation or update has been retried */
+    readonly retryCount: Maybe<number>;
+    /** Creation date of this history record */
+    readonly createdDateTime: DateTime;
+    /** Last modified date of this history record */
+    readonly modifiedDateTime: DateTime;
+  }
+
   export interface WorkflowRuntimeResponse {
     readonly success: boolean;
     /** Error message if success is false */
@@ -6410,18 +7118,18 @@ declare module 'veritone-types' {
     readonly taskList: Json;
   }
 
-  export interface EngineConfigurationList extends Page {
-    readonly records: ReadonlyArray<EngineConfiguration>;
-
-    readonly count: number;
+  export interface EngineClassList extends Page {
+    readonly records: Maybe<ReadonlyArray<EngineClass>>;
 
     readonly offset: number;
 
     readonly limit: number;
+
+    readonly count: Maybe<number>;
   }
 
-  export interface ClusterNodeList extends Page {
-    readonly records: ReadonlyArray<ClusterNode>;
+  export interface EngineConfigurationList extends Page {
+    readonly records: ReadonlyArray<EngineConfiguration>;
 
     readonly count: number;
 
@@ -6498,6 +7206,8 @@ declare module 'veritone-types' {
     readonly deleteAsset: Maybe<DeletePayload>;
     /** Update an asset */
     readonly updateAsset: Maybe<Asset>;
+    /** Add a single media segment to a TemporalDataObject. This mutation will update the manifest asset (`media-mdp`) for the TemporalDataObject. */
+    readonly addMediaSegment: TemporalDataObject;
     /** Start a clone job. A clone creates a new TDO that links back to an existing TDO's assets instead of creating new ones and is used primarily to handle sample media. */
     readonly requestClone: Maybe<CloneRequest>;
     /** Create a new engine. The engine will need to go through a sequence of workflow steps before use in production. See VDA documentation for details. */
@@ -6532,6 +7242,8 @@ declare module 'veritone-types' {
     readonly deleteApplication: Maybe<DeletePayload>;
     /** Update a custom application. Applications are subject to specific workflows. The current application state determines what updates can be made to it. See VDA documentation for details. */
     readonly updateApplication: Maybe<Application>;
+    /** Update an application by adding or removing components */
+    readonly updateApplicationComponent: ApplicationComponent;
     /** Bulk delete context meu extensions. */
     readonly bulkDeleteContextMenuExtensions: Maybe<ContextMenuExtensionList>;
     /** Update an organization */
@@ -6592,12 +7304,6 @@ declare module 'veritone-types' {
     readonly applicationWorkflow: Maybe<Application>;
     /** Apply an application workflow step, such as "submit" or "approve" */
     readonly engineWorkflow: Maybe<Engine>;
-    /** Create an ingestion configuration */
-    readonly createIngestionConfiguration: Maybe<IngestionConfiguration>;
-    /** Update an ingestion configuration */
-    readonly updateIngestionConfiguration: Maybe<IngestionConfiguration>;
-    /** Delete an ingestion configuration */
-    readonly deleteIngestionConfiguration: Maybe<DeletePayload>;
     /** Creates a widget associated with a collection */
     readonly createWidget: Maybe<Widget>;
     /** Updates a widget */
@@ -6640,6 +7346,10 @@ declare module 'veritone-types' {
     readonly deleteCollection: Maybe<DeletePayload>;
     /** Share a collection, allowing other organizations to view the data it contains. */
     readonly shareCollection: Maybe<Share>;
+
+    readonly updateSharedCollectionMentions: Maybe<Share>;
+
+    readonly updateSharedCollectionHistory: Maybe<SharedCollectionHistory>;
     /** Share a mention from a collection */
     readonly shareMentionFromCollection: Maybe<Share>;
     /** Share mention */
@@ -6648,6 +7358,10 @@ declare module 'veritone-types' {
     readonly shareMentionInBulk: Maybe<ReadonlyArray<Maybe<Share>>>;
     /** Add a mention to a collection */
     readonly createCollectionMention: Maybe<CollectionMention>;
+
+    readonly createCollectionMentions: ReadonlyArray<CollectionMention>;
+    /** Update a mention in a collection */
+    readonly updateCollectionMention: CollectionMention;
     /** Remove a mention from a collection */
     readonly deleteCollectionMention: Maybe<CollectionMention>;
     /** Create a new folder */
@@ -6682,6 +7396,8 @@ declare module 'veritone-types' {
     readonly createMention: Maybe<Mention>;
     /** Update a mention object */
     readonly updateMention: Maybe<Mention>;
+    /** Update a set of mentions */
+    readonly updateMentions: Maybe<ReadonlyArray<Maybe<Mention>>>;
     /** Create root folder for an organization */
     readonly createRootFolders: Maybe<ReadonlyArray<Maybe<Folder>>>;
     /** Apply bulk updates to watchlists. This mutation is currently available only to Veritone operations. */
@@ -6772,6 +7488,8 @@ declare module 'veritone-types' {
     readonly createProcessTemplate: ProcessTemplate;
     /** Update a processTemplate by ID in CMS */
     readonly updateProcessTemplate: ProcessTemplate;
+    /** Delete a processTemplate by ID in CMS */
+    readonly deleteProcessTemplate: DeletePayload;
     /** Create a mention export request. The requested mentionFilters including The mention export file csv will be exported offline. */
     readonly createMentionExportRequest: ExportRequest;
     /** Update status or assetURI of a mentionExportRequest Often use when the file export was completed or downloaded */
@@ -6784,6 +7502,20 @@ declare module 'veritone-types' {
     readonly deleteCreative: DeletePayload;
     /** Emit a system-level emit. This mutation is used only by Veritone platform components. */
     readonly emitSystemEvent: SystemEventInfo;
+    /** Creates an immutable audit log event with the given payload */
+    readonly emitAuditEvent: AuditEvent;
+
+    readonly createContextMenuExtension: ContextMenuExtension;
+
+    readonly updateContextMenuExtension: ContextMenuExtension;
+
+    readonly deleteContextMenuExtension: DeletePayload;
+    /** Add or update an organization integration config by organization id and integration id */
+    readonly setOrganizationIntegrationConfig: IntegrationConfig;
+    /** Delete an integration config */
+    readonly deleteOrganizationIntegrationConfig: DeleteIntegrationConfigPayload;
+
+    readonly updateUserStatus: User;
 
     readonly createCluster: Maybe<Cluster>;
 
@@ -6858,6 +7590,12 @@ declare module 'veritone-types' {
     readonly getNextBundleForCluster: Bundle;
     /** Update bundle status as cluster. */
     readonly updateBundleStatusAsCluster: Bundle;
+    /** Pause for a node */
+    readonly pauseClusterNode: Maybe<ClusterNode>;
+    /** Unpause for a node */
+    readonly unpauseClusterNode: Maybe<ClusterNode>;
+    /** Update the cluster's runtime state. Used only by infrastructure elements. */
+    readonly updateClusterState: Maybe<Cluster>;
   }
 
   /** Payload required to delete an object */
@@ -6895,13 +7633,6 @@ declare module 'veritone-types' {
 
   export interface CreatePasswordResetRequestPayload {
     readonly message: Maybe<string>;
-  }
-
-  export interface CollectionMention {
-    /** id of the collection */
-    readonly folderId: string;
-    /** id of the mention */
-    readonly mentionId: string;
   }
 
   /** Contains information about the user's authentication context. */
@@ -6998,6 +7729,14 @@ declare module 'veritone-types' {
     readonly timestamp: DateTime;
 
     readonly id: string;
+  }
+
+  export interface DeleteIntegrationConfigPayload {
+    readonly organizationId: string;
+
+    readonly integrationId: string;
+
+    readonly message: Maybe<string>;
   }
 
   export interface Bundle {
@@ -7161,6 +7900,16 @@ declare module 'veritone-types' {
     readonly nodeId: Maybe<string>;
   }
 
+  export interface EntityIdentifierItemList {
+    readonly records: Maybe<ReadonlyArray<Maybe<EntityIdentifierItem>>>;
+
+    readonly limit: number;
+
+    readonly offset: number;
+
+    readonly count: Maybe<number>;
+  }
+
   export interface FileData extends Metadata {
     readonly name: string;
 
@@ -7239,12 +7988,14 @@ declare module 'veritone-types' {
   // ====================================================
 
   export interface TemporalDataObjectsQueryArgs {
-    /** Application ID to get TDOs for. Defaults to the user's own application. */
+    /** Organization ID to get TDOs for. Defaults to the user's own organization. You can only retrieves content for your own organizations or organizations that have shared data with yours. */
+    organizationId: Maybe<string>;
+    /** Application ID (an authorization construct that maps directly to organization ID) to get TDOs for. Defaults to the user's own organization. */
     applicationId: Maybe<string>;
     /** Provide an ID to retrieve a single specific TDO. */
     id: Maybe<string>;
     /** Provide an offset to skip to a certain element in the result, for paging. */
-    offset: Maybe<number>;
+    offset: number;
     /** Specify maximum number of results to retrieve in this result. Page size. */
     limit: number;
     /** Optionally, specify a source ID. TDOs ingested from this source will be returned. */
@@ -7252,9 +8003,9 @@ declare module 'veritone-types' {
     /** Optionally, specify a scheduled job ID. TDOs ingested under this scheduled job will be returned. */
     scheduledJobId: Maybe<string>;
     /** Whether to retrieve only tdos with the specified sampleMedia value */
-    sampleMedia: Maybe<boolean>;
+    sampleMedia: boolean;
     /** Whether to retrieve public data that is not part of the user's organization. The default is false. Pass true to include public data in the result set. */
-    includePublic: Maybe<boolean>;
+    includePublic: boolean;
 
     orderBy: TemporalDataObjectOrderBy;
 
@@ -7286,7 +8037,7 @@ declare module 'veritone-types' {
     /** Application ID to get clone requests for. Defaults to the user's own application. */
     applicationId: Maybe<string>;
 
-    offset: Maybe<number>;
+    offset: number;
 
     limit: number;
   }
@@ -7302,7 +8053,7 @@ declare module 'veritone-types' {
     /** Provide a list of states to filter by engine state. */
     state: Maybe<ReadonlyArray<Maybe<EngineState>>>;
     /** If true, return only engines owned by the user's organization. */
-    owned: Maybe<boolean>;
+    owned: boolean;
     /** If true, return only engines that require a library. */
     libraryRequired: Maybe<boolean>;
     /** If true, return only engines that create their own TDO. If false, return only engines that do not create a TDO. If not set, return either. */
@@ -7310,7 +8061,7 @@ declare module 'veritone-types' {
     /** Provide a name, or part of a name, to search by engine name */
     name: Maybe<string>;
     /** Specify maximum number of results to retrieve in this result. Page size. */
-    offset: Maybe<number>;
+    offset: number;
     /** Specify maximum number of results to retrieve in this result. */
     limit: number;
     /** Filters for engine attributes */
@@ -7334,7 +8085,7 @@ declare module 'veritone-types' {
     /** Return all categories of an engine type */
     type: Maybe<string>;
     /** Specify maximum number of results to retrieve in this result. Page size. */
-    offset: Maybe<number>;
+    offset: number;
     /** Specify maximum number of results to retrieve in this result. */
     limit: number;
   }
@@ -7343,6 +8094,7 @@ declare module 'veritone-types' {
     id: string;
   }
   export interface JobsQueryArgs {
+    hasTargetTDO: Maybe<boolean>;
     /** Provide an ID to retrieve a single specific job. */
     id: Maybe<string>;
     /** Provide a list of status strings to filter by status */
@@ -7350,7 +8102,7 @@ declare module 'veritone-types' {
 
     applicationStatus: Maybe<string>;
     /** Provide an offset to skip to a certain element in the result, for paging. */
-    offset: Maybe<number>;
+    offset: number;
     /** Specify the maximum number of results to included in this response, or page size. */
     limit: number;
     /** Provide an application ID to filter jobs for a given application. Defaults to the user's own application. */
@@ -7369,6 +8121,10 @@ declare module 'veritone-types' {
     dateTimeFilter: Maybe<ReadonlyArray<JobDateTimeFilter>>;
     /** Provide list of application IDs to filter jobs. Defaults to the user's own application. */
     applicationIds: Maybe<ReadonlyArray<Maybe<string>>>;
+    /** Provide a list of engine IDs to filter for jobs that contain tasks for the specified engines. */
+    engineIds: Maybe<ReadonlyArray<string>>;
+    /** Provide a list of engine category IDs to filter for jobs that contain tasks for engines in the specific categories. */
+    engineCategoryIds: Maybe<ReadonlyArray<string>>;
   }
   export interface JobQueryArgs {
     /** the job ID */
@@ -7382,7 +8138,7 @@ declare module 'veritone-types' {
     /** Provide an ID to retrieve a single specific entity identifier type. */
     id: Maybe<string>;
     /** Provide an offset to skip to a certain element in the result, for paging. */
-    offset: Maybe<number>;
+    offset: number;
     /** Specify maximum number of results to retrieve in this result. Page size. */
     limit: number;
   }
@@ -7394,7 +8150,7 @@ declare module 'veritone-types' {
     /** Provide an ID to retrieve a single specific library type. */
     id: Maybe<string>;
     /** Provide an offset to skip to a certain element in the result, for paging. */
-    offset: Maybe<number>;
+    offset: number;
     /** Specify maximum number of results to retrieve in this result. Page size. */
     limit: number;
   }
@@ -7412,9 +8168,9 @@ declare module 'veritone-types' {
     /** Provide the id of an entity identifier type to search for libraries that correlate to that type. */
     entityIdentifierTypeIds: Maybe<ReadonlyArray<string>>;
     /** Specify true if only libraries owned by the user's organization should be returned. Otherwise, shared libraries will be included. */
-    includeOwnedOnly: Maybe<boolean>;
+    includeOwnedOnly: boolean;
     /** Provide an offset to skip to a certain element in the result, for paging. */
-    offset: Maybe<number>;
+    offset: number;
     /** Specify maximum number of results to retrieve in this result. Page size. */
     limit: number;
     /** Specify a field to order by */
@@ -7446,7 +8202,7 @@ declare module 'veritone-types' {
 
     name: Maybe<string>;
 
-    offset: Maybe<number>;
+    offset: number;
 
     limit: number;
 
@@ -7466,7 +8222,7 @@ declare module 'veritone-types' {
     /** If true, return only applications owned by the user's organization. */
     owned: Maybe<boolean>;
     /** Provide an offset to skip to a certain element in the result, for paging. */
-    offset: Maybe<number>;
+    offset: number;
     /** Specify maximum number of results to retrieve in this result. Page size. */
     limit: number;
   }
@@ -7474,13 +8230,17 @@ declare module 'veritone-types' {
     /** Provide an ID to retrieve a single specific organization. */
     id: Maybe<string>;
     /** Provide an offset to skip to a certain element in the result, for paging. */
-    offset: Maybe<number>;
+    offset: number;
     /** Specify maximum number of results to retrieve in this result. Page size. */
     limit: number;
-    /** Provide a property from the organization kvp to filter the organizaion list. */
+    /** Provide a property from the organization kvp to filter the organization list. */
     kvpProperty: Maybe<string>;
     /** Provide value to for the kvpFeature filter. If not present the filter becomes kvpProperty existence filter */
     kvpValue: Maybe<string>;
+    /** Optionally, supply a string for string match */
+    name: Maybe<string>;
+    /** Supply the type of string match to apply. */
+    nameMatch: StringMatch;
   }
   export interface OrganizationQueryArgs {
     /** The organization ID TODO take application ID as well as org ID */
@@ -7492,7 +8252,7 @@ declare module 'veritone-types' {
 
     name: Maybe<string>;
     /** Provide an offset to skip to a certain element in the result, for paging. */
-    offset: Maybe<number>;
+    offset: number;
     /** Specify maximum number of results to retrieve in this result. Page size. */
     limit: number;
   }
@@ -7506,7 +8266,7 @@ declare module 'veritone-types' {
     /** Provide a list of organization IDs to filter your search by organization. */
     organizationIds: Maybe<ReadonlyArray<Maybe<string>>>;
     /** Provide an offset to skip to a certain element in the result, for paging. */
-    offset: Maybe<number>;
+    offset: number;
     /** Specify maximum number of results to retrieve in this result. Page size. */
     limit: number;
     /** Include all organization users. */
@@ -7528,7 +8288,7 @@ declare module 'veritone-types' {
     /** Provide a list of organization IDs to retrieve groups defined within certain organizations. */
     organizationIds: Maybe<ReadonlyArray<Maybe<string>>>;
     /** Provide an offset to skip to a certain element in the result, for paging. */
-    offset: Maybe<number>;
+    offset: number;
     /** Specify maximum number of results to retrieve in this result. Page size. */
     limit: number;
   }
@@ -7538,7 +8298,7 @@ declare module 'veritone-types' {
     /** Comments pagination - limit */
     limit: number;
     /** Comments pagination - limit */
-    offset: Maybe<number>;
+    offset: number;
     /** The user who owns the mention. */
     userId: Maybe<string>;
   }
@@ -7547,11 +8307,11 @@ declare module 'veritone-types' {
     shareId: string;
   }
   export interface SearchMentionsQueryArgs {
-    /** JSON structure containing the search query. TODO link to syntax documentation */
+    /** JSON structure containing the search query. See https://docs.veritone.com/#/apis/search-quickstart for full details on the search query syntax */
     search: Json;
   }
   export interface SearchMediaQueryArgs {
-    /** JSON structure containing the search query. TODO link to syntax documentation */
+    /** JSON structure containing the search query. See https://docs.veritone.com/#/apis/search-quickstart for full details on the search query syntax */
     search: Json;
   }
   export interface RootFoldersQueryArgs {
@@ -7562,33 +8322,35 @@ declare module 'veritone-types' {
     /** Provide an ID to retrieve a single specific user. */
     id: string;
   }
+  export interface AuditEventsQueryArgs {
+    /** An elastic query for audit events */
+    query: Maybe<Json>;
+
+    orderDirection: OrderDirection;
+    /** Filter logs by a specific application */
+    application: Maybe<string>;
+    /** Term filters to filter documents by properties in the payload */
+    terms: Maybe<ReadonlyArray<Json>>;
+
+    limit: number;
+
+    offset: number;
+  }
+  export interface FolderOverviewQueryArgs {
+    /** Tree Object Ids */
+    ids: ReadonlyArray<string>;
+
+    rootFolderType: RootFolderType;
+  }
+  export interface FolderSummaryDetailsQueryArgs {
+    /** Tree Object Ids */
+    ids: ReadonlyArray<string>;
+
+    rootFolderType: RootFolderType;
+  }
   export interface ApplicationQueryArgs {
     /** The application ID */
     id: string;
-  }
-  export interface IngestionConfigurationQueryArgs {
-    /** The configuration ID */
-    id: string;
-  }
-  export interface IngestionConfigurationsQueryArgs {
-    /** Supply an ingestion configuration ID to retrieve a single Ingestion */
-    id: Maybe<string>;
-    /** Offset */
-    offset: Maybe<number>;
-    /** Limit */
-    limit: number;
-
-    name: Maybe<string>;
-
-    startDate: Maybe<DateTime>;
-
-    endDate: Maybe<DateTime>;
-    /** Specify one or more sources to filter by source type */
-    sources: Maybe<ReadonlyArray<string>>;
-    /** Supply an application ID to retrieve configurations only for that application. */
-    applicationId: Maybe<string>;
-    /** Email address configured for ingestion */
-    emailAddress: Maybe<string>;
   }
   export interface SchemasQueryArgs {
     /** Id of a schema to retrieve */
@@ -7608,7 +8370,7 @@ declare module 'veritone-types' {
     /** Limit */
     limit: number;
     /** Offset */
-    offset: Maybe<number>;
+    offset: number;
     /** Specify one or more fields and direction to order results */
     orderBy: Maybe<ReadonlyArray<Maybe<SchemaOrder>>>;
   }
@@ -7622,7 +8384,7 @@ declare module 'veritone-types' {
     /** Limit */
     limit: number;
     /** Offset */
-    offset: Maybe<number>;
+    offset: number;
   }
   export interface StructuredDataQueryArgs {
     /** Supply the ID of the structured data object to retrieve. This will override filters. */
@@ -7648,7 +8410,7 @@ declare module 'veritone-types' {
 
     limit: number;
 
-    offset: Maybe<number>;
+    offset: number;
 
     owned: Maybe<boolean>;
     /** Query to filter SDO. Supports operations such as and, or, eq, gt, lt, etc. TODO link to syntax documentation */
@@ -7657,10 +8419,22 @@ declare module 'veritone-types' {
   export interface GetSignedWritableUrlQueryArgs {
     /** Optional key of the object to generate a writable URL for. If not provided, a new, unique key will be generated. If a key is provided and resembles a file name (with extension delimited by .), a UUID will be inserted into the file name, leaving the extension intact. If a key is provided and does not resemble a file name, a UUID will be appended. */
     key: Maybe<string>;
+    /** Optional type of resource, such as `asset`, `thumbnail`, or `preview` */
+    type: Maybe<string>;
+    /** Optional extended path information. If the uploaded content will be contained within a container such as a `TemporalDataObject` (for `asset`) or `Library` (for `entityIdentifier`), the ID of the object should be provided here. */
+    path: Maybe<string>;
+    /** Optional organization ID. Normally this value is computed by the server based on the authorization token used for the request. Is is used only by Veritone platform components. */
+    organizationId: Maybe<string>;
   }
   export interface GetSignedWritableUrlsQueryArgs {
     /** Number of signed URLs to return */
     number: number;
+    /** Optional type of resource, such as `asset`, `thumbnail`, or `preview` */
+    type: Maybe<string>;
+    /** Optional extended path information. If the uploaded content will be contained within a container such as a `TemporalDataObject` (for `asset`) or `Library` (for `entityIdentifier`), the ID of the object should be provided here. */
+    path: Maybe<string>;
+    /** Optional organization ID. Normally this value is computed by the server based on the authorization token used for the request. Is is used only by Veritone platform components. */
+    organizationId: Maybe<string>;
   }
   export interface WatchlistsQueryArgs {
     id: Maybe<string>;
@@ -7675,13 +8449,15 @@ declare module 'veritone-types' {
 
     name: Maybe<string>;
 
-    offset: Maybe<number>;
+    offset: number;
 
     limit: number;
 
     orderBy: WatchlistOrderBy;
 
     orderDirection: OrderDirection;
+    /** Set `true` to include only disabled watchlist or `false` to include only enabled watchlists. By default, both are included. */
+    isDisabled: Maybe<boolean>;
   }
   export interface WatchlistQueryArgs {
     id: string;
@@ -7689,11 +8465,13 @@ declare module 'veritone-types' {
   export interface DataRegistriesQueryArgs {
     id: Maybe<string>;
 
+    ids: Maybe<ReadonlyArray<string>>;
+
     name: Maybe<string>;
 
     nameMatch: StringMatch;
 
-    offset: Maybe<number>;
+    offset: number;
 
     limit: number;
 
@@ -7715,14 +8493,30 @@ declare module 'veritone-types' {
   export interface CollectionsQueryArgs {
     id: Maybe<string>;
 
+    name: Maybe<string>;
+
     mentionId: Maybe<string>;
 
-    offset: Maybe<number>;
+    offset: number;
 
     limit: number;
   }
   export interface CollectionQueryArgs {
     id: string;
+  }
+  export interface CollectionMentionQueryArgs {
+    folderId: string;
+
+    mentionId: string;
+  }
+  export interface CollectionMentionsQueryArgs {
+    folderId: Maybe<string>;
+
+    mentionId: Maybe<string>;
+
+    limit: number;
+
+    offset: number;
   }
   export interface MentionsQueryArgs {
     id: Maybe<string>;
@@ -7739,9 +8533,11 @@ declare module 'veritone-types' {
     /** Set order information on the query. Multiple fields are supported. */
     orderBy: Maybe<ReadonlyArray<MentionOrderBy>>;
 
-    offset: Maybe<number>;
+    offset: number;
 
     limit: number;
+    /** Provide a folder ID to filter by collection */
+    folderId: Maybe<string>;
   }
   export interface EngineResultsQueryArgs {
     /** Provide the ID of the TDO containing engine results to retrieve. If this parameter is used, engineIds or engineCategoryIds must also be set. Results for _only_ the specified TDO will be returned. */
@@ -7765,7 +8561,7 @@ declare module 'veritone-types' {
     /** End date for the results. Takes priority over stopOffsetMs. */
     stopDate: Maybe<DateTime>;
     /** Whether or not to exclude user edited engine results. Defaults to false. */
-    ignoreUserEdited: Maybe<boolean>;
+    ignoreUserEdited: boolean;
     /** A TDO ID can be provided for use if the provided `sourceId` and/or `mentionId` parameters do not resolve to a logical set of TDOs. Depending on parameter settings and available data, results from other TDOs can be included in the response. */
     fallbackTdoId: Maybe<string>;
   }
@@ -7773,11 +8569,11 @@ declare module 'veritone-types' {
     id: string;
   }
   export interface SavedSearchesQueryArgs {
-    offset: Maybe<number>;
+    offset: number;
 
     limit: number;
 
-    includeShared: Maybe<boolean>;
+    includeShared: boolean;
 
     filterByName: Maybe<string>;
 
@@ -7789,7 +8585,7 @@ declare module 'veritone-types' {
     /** Provide an ID to retrieve a single export request */
     id: Maybe<string>;
     /** Provide an offset to skip to a certain element in the result, for paging. */
-    offset: Maybe<number>;
+    offset: number;
     /** Specify maximum number of results to retrieve in this result. Page size. */
     limit: number;
     /** Provide a list of status options to filter by status */
@@ -7809,9 +8605,24 @@ declare module 'veritone-types' {
     /** Provide an application to retrieve all its events. Use 'system' to list all public system events. */
     application: string;
     /** Provide an offset to skip to a certain element in the result, for paging. */
-    offset: Maybe<number>;
+    offset: number;
     /** Specify maximum number of results to retrieve in this result. Page size. */
     limit: number;
+  }
+  export interface EventSubscriptionsQueryArgs {
+    /** The event subscription ids */
+    ids: Maybe<ReadonlyArray<string>>;
+    /** The name of the event */
+    eventName: Maybe<string>;
+    /** The type of event, such as `mention`, `job`, `engine`. */
+    eventType: Maybe<string>;
+    /** Provide an offset to skip to a certain element in the result, for paging. */
+    offset: number;
+    /** Specify maximum number of results to retrieve in this result. Page size. */
+    limit: number;
+  }
+  export interface EventSubscriptionQueryArgs {
+    id: string;
   }
   export interface AuditLogQueryArgs {
     /** Date/time up to which entries will be returned. In other words, the end of the query time window. Defaults to the current time. */
@@ -7837,7 +8648,7 @@ declare module 'veritone-types' {
     /** The unique ID of an audit log entry. Multiple values can be provided. */
     id: Maybe<ReadonlyArray<string>>;
     /** Offset into result set, for paging. */
-    offset: Maybe<number>;
+    offset: number;
     /** Limit on result size, for paging (page size). Audit queries are lightweight so the default of 100 is higher than the default offset used elsewhere in the API. */
     limit: number;
     /** Order information. Default is order by `createdDateTime` descending. */
@@ -7845,6 +8656,22 @@ declare module 'veritone-types' {
   }
   export interface MediaShareQueryArgs {
     id: string;
+  }
+  export interface SharedCollectionQueryArgs {
+    /** share token */
+    shareId: string;
+  }
+  export interface SharedCollectionHistoryQueryArgs {
+    /** Provide an ID to retrieve a single history record */
+    ids: Maybe<ReadonlyArray<string>>;
+    /** Provide a folder ID to filter by collection */
+    folderId: Maybe<string>;
+    /** Provide a share ID to filter by share ID */
+    shareId: Maybe<string>;
+    /** Specify maximum number of results to retrieve in this result. Page size. */
+    offset: number;
+    /** Specify maximum number of results to retrieve in this result. */
+    limit: number;
   }
   export interface WorkflowRuntimeQueryArgs {
     workflowRuntimeId: string;
@@ -7857,18 +8684,35 @@ declare module 'veritone-types' {
     /** A prefix filter used to return a set of workflow data items whose dataKey starts with dataKeyPrefix */
     storageKeyPrefix: Maybe<string>;
     /** Offset for paging */
-    offset: Maybe<number>;
+    offset: number;
     /** Limit on result size, for paging (page size). workflowRuntimeData can be arbitrary large therefore smaller paging shoulf be preffered */
     limit: number;
   }
   export interface ProcessTemplatesQueryArgs {
     id: Maybe<string>;
 
-    offset: Maybe<number>;
+    offset: number;
 
     limit: number;
   }
+  export interface ProcessTemplateQueryArgs {
+    id: string;
+  }
   export interface CreativeQueryArgs {
+    id: string;
+  }
+  export interface EngineClassesQueryArgs {
+    /** Provide an ID to retrieve a single specific engine class. */
+    id: Maybe<string>;
+    /** Provide a name, or part of one, to search by class name */
+    name: Maybe<string>;
+    /** Specify maximum number of results to retrieve in this result. Page size. */
+    offset: number;
+    /** Specify maximum number of results to retrieve in this result. */
+    limit: number;
+  }
+  export interface EngineClassQueryArgs {
+    /** Supply the ID of the engine class to retrieve */
     id: string;
   }
   export interface ScheduledJobQueryArgs {
@@ -7890,7 +8734,7 @@ declare module 'veritone-types' {
 
     engineType: Maybe<ReadonlyArray<EngineTypeFilter>>;
     /** Specify an offset to retrieve additional pages */
-    offset: Maybe<number>;
+    offset: number;
     /** Specify a limit to limit result size. */
     limit: number;
 
@@ -7924,7 +8768,7 @@ declare module 'veritone-types' {
   export interface ClusterNodesQueryArgs {
     id: Maybe<string>;
 
-    offset: Maybe<number>;
+    offset: number;
 
     limit: number;
   }
@@ -7938,9 +8782,21 @@ declare module 'veritone-types' {
 
     type: Maybe<ClusterType>;
 
-    offset: Maybe<number>;
+    nameMatch: StringMatch;
+
+    offset: number;
 
     limit: number;
+    /** Type of string match to use against tags, if any */
+    tagMatch: StringMatch;
+    /** List of tags to match against */
+    tags: Maybe<ReadonlyArray<string>>;
+
+    dateTimeFilter: Maybe<ReadonlyArray<ClusterDateTimeFilter>>;
+
+    orderBy: Maybe<ReadonlyArray<ClusterOrderBy>>;
+    /** ID of the organization. Only Veritone platform components can set this value. */
+    organizationId: Maybe<string>;
   }
   export interface ExecutionLocationQueryArgs {
     id: string;
@@ -7960,7 +8816,7 @@ declare module 'veritone-types' {
 
     engineType: Maybe<ReadonlyArray<EngineTypeFilter>>;
 
-    offset: Maybe<number>;
+    offset: number;
 
     limit: number;
   }
@@ -7977,7 +8833,7 @@ declare module 'veritone-types' {
 
     isPublic: Maybe<boolean>;
 
-    offset: Maybe<number>;
+    offset: number;
 
     limit: number;
   }
@@ -7996,7 +8852,7 @@ declare module 'veritone-types' {
     /** String matching strategy. Default is "starts with". */
     nameMatch: StringMatch;
     /** Provide an offset to skip to a certain element in the result, for paging. */
-    offset: Maybe<number>;
+    offset: number;
     /** Specify maximum number of results to retrieve in this result. Page size. */
     limit: number;
     /** Set this flag to true or false to return only sources that do or do not have content templates associated with them. The default is neither (do not filter on the presence of content templates). */
@@ -8022,7 +8878,7 @@ declare module 'veritone-types' {
     /** Provide `isLive` to select source types with the given value. */
     isLive: Maybe<boolean>;
 
-    offset: Maybe<number>;
+    offset: number;
 
     limit: number;
   }
@@ -8044,6 +8900,11 @@ declare module 'veritone-types' {
 
     taskTemplateId: Maybe<string>;
   }
+  export interface ClusterTagsQueryArgs {
+    matchType: StringMatch;
+
+    match: string;
+  }
   export interface DetailsTemporalDataObjectArgs {
     /** optionally, specify a path to retrieve only a specific property within the details JSON */
     path: Maybe<string>;
@@ -8051,20 +8912,22 @@ declare module 'veritone-types' {
   export interface AssetsTemporalDataObjectArgs {
     /** Provide an ID to retrieve a single asset. */
     id: Maybe<string>;
-    /** Specify a list of asset types such as "media" or "transcript" to retrieve a specific asset type */
+    /** deprecated - use assetType parameter */
     type: Maybe<ReadonlyArray<string>>;
-    /** Deprecated -- use type parameter */
+    /** Specify a list of asset types such as "media" or "transcript" to retrieve a specific asset type. See https://docs.veritone.com/#/apis/tutorials/asset-types for supported values. */
     assetType: Maybe<ReadonlyArray<string>>;
     /** Retrieve assets created by a specific task */
     sourceTaskId: Maybe<string>;
     /** Provide an offset to skip to a certain element in the result, for paging. */
-    offset: Maybe<number>;
+    offset: number;
     /** Specify maximum number of results to retrieve in this result. Page size. */
     limit: number;
 
     orderBy: AssetOrderBy;
 
     orderDirection: OrderDirection;
+    /** Whether or not to include a virtual media asset that streams together all segments on a segmented TDO. Most clients should use the default for this. */
+    includeVirtualMediaAsset: boolean;
   }
   export interface PrimaryAssetTemporalDataObjectArgs {
     assetType: string;
@@ -8072,7 +8935,7 @@ declare module 'veritone-types' {
   export interface TasksTemporalDataObjectArgs {
     id: Maybe<string>;
 
-    offset: Maybe<number>;
+    offset: number;
 
     limit: number;
 
@@ -8081,7 +8944,7 @@ declare module 'veritone-types' {
     dateTimeFilter: Maybe<ReadonlyArray<Maybe<TaskDateTimeFilter>>>;
   }
   export interface EngineRunsTemporalDataObjectArgs {
-    offset: Maybe<number>;
+    offset: number;
 
     limit: number;
   }
@@ -8098,7 +8961,7 @@ declare module 'veritone-types' {
   export interface TasksEngineArgs {
     status: Maybe<ReadonlyArray<Maybe<string>>>;
     /** Provide an offset to skip to a certain element in the result, for paging. */
-    offset: Maybe<number>;
+    offset: number;
     /** Specify maximum number of results to retrieve in this result. Page size. */
     limit: number;
 
@@ -8113,7 +8976,7 @@ declare module 'veritone-types' {
 
     status: Maybe<ReadonlyArray<Maybe<string>>>;
     /** Provide an offset to skip to a certain element in the result, for paging. */
-    offset: Maybe<number>;
+    offset: number;
     /** Specify maximum number of results to retrieve in this result. Page size. */
     limit: number;
 
@@ -8126,12 +8989,12 @@ declare module 'veritone-types' {
     toDateTime: Maybe<DateTime>;
   }
   export interface ApplicationsOrganizationArgs {
-    offset: Maybe<number>;
+    offset: number;
 
     limit: number;
   }
   export interface UsersOrganizationArgs {
-    offset: Maybe<number>;
+    offset: number;
 
     limit: number;
   }
@@ -8139,7 +9002,7 @@ declare module 'veritone-types' {
     /** Provide a name to filter by collection name */
     name: Maybe<string>;
     /** Provide an offset to skip to a certain element in the result, for paging. */
-    offset: Maybe<number>;
+    offset: number;
     /** Specify maximum number of results to retrieve in this result. Page size. */
     limit: number;
   }
@@ -8147,34 +9010,11 @@ declare module 'veritone-types' {
     /** Specify a root folder type to retrieve a specific root folder */
     type: RootFolderType;
   }
+  export interface IntegrationConfigOrganizationArgs {
+    id: string;
+  }
   export interface ClientSecretApplicationArgs {
     password: Maybe<string>;
-  }
-  export interface RootFolderUserArgs {
-    /** Specify a root folder type to retrieve a specific root folder */
-    type: RootFolderType;
-  }
-  export interface ChildFoldersFolderArgs {
-    offset: Maybe<number>;
-
-    limit: number;
-  }
-  export interface ChildTdOsFolderArgs {
-    offset: Maybe<number>;
-
-    limit: number;
-  }
-  export interface DataStructuredDataArgs {
-    /** Optionally, specify a path into the JSON data. Only the value of the path will be returned, at the top level. The value will be empty if there is nothing in the JSON at that path. This parameter is useful for directly addressing fields in the JSON. */
-    path: Maybe<string>;
-  }
-  export interface DataStringStructuredDataArgs {
-    indent: Maybe<number>;
-  }
-  export interface StructuredDataObjectsSchemaArgs {
-    offset: Maybe<number>;
-
-    limit: number;
   }
   export interface SchemasDataRegistryArgs {
     status: Maybe<ReadonlyArray<Maybe<SchemaStatus>>>;
@@ -8183,33 +9023,52 @@ declare module 'veritone-types' {
 
     id: Maybe<string>;
 
-    offset: Maybe<number>;
+    offset: number;
 
     limit: number;
 
     orderBy: Maybe<ReadonlyArray<Maybe<SchemaOrder>>>;
   }
-  export interface EnginesEngineCategoryArgs {
-    offset: Maybe<number>;
+  export interface StructuredDataObjectsSchemaArgs {
+    offset: number;
 
     limit: number;
-    /** Filters for engine attributes */
-    filter: Maybe<EngineFilter>;
-    /** Provide a list of EngineSortField to sort by. */
-    orderBy: Maybe<ReadonlyArray<Maybe<EngineSortField>>>;
+  }
+  export interface RootFolderUserArgs {
+    /** Specify a root folder type to retrieve a specific root folder */
+    type: RootFolderType;
+  }
+  export interface ChildFoldersFolderArgs {
+    offset: number;
+
+    limit: number;
+    /** Provide a list of names to filter folders */
+    names: Maybe<ReadonlyArray<Maybe<string>>>;
+  }
+  export interface ChildTdOsFolderArgs {
+    offset: number;
+
+    limit: number;
+  }
+  export interface ChildWatchlistsFolderArgs {
+    offset: number;
+
+    limit: number;
+    /** Provide a name to filter watchlists */
+    name: Maybe<string>;
   }
   export interface MentionsWatchlistArgs {
-    offset: Maybe<number>;
+    offset: number;
 
     limit: number;
   }
   export interface ScheduledJobsWatchlistArgs {
-    offset: Maybe<number>;
+    offset: number;
 
     limit: number;
   }
   export interface SchedulesWatchlistArgs {
-    offset: Maybe<number>;
+    offset: number;
 
     limit: number;
   }
@@ -8217,17 +9076,17 @@ declare module 'veritone-types' {
     userId: Maybe<string>;
   }
   export interface JobPipelinesScheduledJobArgs {
-    offset: Maybe<number>;
+    offset: number;
 
     limit: number;
   }
   export interface JobTemplatesScheduledJobArgs {
-    offset: Maybe<number>;
+    offset: number;
 
     limit: number;
   }
   export interface AllJobTemplatesScheduledJobArgs {
-    offset: Maybe<number>;
+    offset: number;
 
     limit: number;
   }
@@ -8238,17 +9097,17 @@ declare module 'veritone-types' {
     clusterId: Maybe<string>;
     /** Provide sort information. The default is to sort by createdDateTime descending. */
     orderBy: Maybe<ReadonlyArray<JobSortField>>;
-    /** Optionally, specify filters on date/time fields */
+    /** Optionally, specify filters on date/time fields. If a filter is not provided here, the query will default to the past 3 months. */
     dateTimeFilter: Maybe<ReadonlyArray<JobDateTimeFilter>>;
     /** Provide a list of status strings to filter by status */
     status: Maybe<ReadonlyArray<JobStatusFilter>>;
     /** Provide an offset to skip to a certain element in the result, for paging. */
-    offset: Maybe<number>;
+    offset: number;
     /** Specify the maximum number of results to included in this response, or page size. */
     limit: number;
   }
   export interface SourcesScheduledJobArgs {
-    offset: Maybe<number>;
+    offset: number;
 
     limit: number;
   }
@@ -8257,7 +9116,7 @@ declare module 'veritone-types' {
 
     engineId: Maybe<string>;
 
-    offset: Maybe<number>;
+    offset: number;
 
     limit: number;
   }
@@ -8269,7 +9128,7 @@ declare module 'veritone-types' {
     /** String matching strategy. Default is "starts with". */
     nameMatch: StringMatch;
     /** Provide an offset to skip to a certain element in the result, for paging. */
-    offset: Maybe<number>;
+    offset: number;
     /** Specify maximum number of results to retrieve in this result. Page size. */
     limit: number;
     /** Set this flag to true or false to return only sources that do or do not have content templates associated with them. The default is neither (do not filter on the presence of content templates). */
@@ -8286,11 +9145,52 @@ declare module 'veritone-types' {
 
     orderDirection: OrderDirection;
   }
+  export interface DataStructuredDataArgs {
+    /** Optionally, specify a path into the JSON data. Only the value of the path will be returned, at the top level. The value will be empty if there is nothing in the JSON at that path. This parameter is useful for directly addressing fields in the JSON. */
+    path: Maybe<string>;
+  }
+  export interface DataStringStructuredDataArgs {
+    indent: number;
+  }
+  export interface JobsClusterArgs {
+    /** Provide an ID to retrieve a single specific job. */
+    id: Maybe<string>;
+    /** Provide a list of status strings to filter by status */
+    status: Maybe<ReadonlyArray<JobStatusFilter>>;
+    /** Provide an offset to skip to a certain element in the result, for paging. */
+    offset: number;
+    /** Specify the maximum number of results to included in this response, or page size. */
+    limit: number;
+    /** Provide an application ID to filter jobs for a given application. Defaults to the user's own application. */
+    applicationId: Maybe<string>;
+    /** Provide a target ID to get the set of jobs running against a particular TDO. */
+    targetId: Maybe<string>;
+    /** Provide a list of scheduled job IDs to get jobs associated with the scheduled jobs */
+    scheduledJobIds: Maybe<ReadonlyArray<string>>;
+    /** Provide sort information. The default is to sort by createdDateTime descending. */
+    orderBy: Maybe<ReadonlyArray<JobSortField>>;
+    /** Filter by date/time field. If a filter is not provided, a default of `createdDateTime` between now and 1 day ago will be applied. */
+    dateTimeFilter: Maybe<ReadonlyArray<JobDateTimeFilter>>;
+    /** Provide list of application IDs to filter jobs. Defaults to the user's own application. */
+    applicationIds: Maybe<ReadonlyArray<Maybe<string>>>;
+  }
+  export interface TasksClusterArgs {
+    /** Specify a list of job status strings to filter by status */
+    status: Maybe<ReadonlyArray<TaskStatus>>;
+    /** Provide an offset to skip to a certain element in the result, for paging. */
+    offset: number;
+    /** Maximum number of results to retrieve in this query */
+    limit: number;
+    /** Specify an ID to retrieve a single specific task */
+    id: Maybe<string>;
+    /** If a filter is not provided, a default of `createdDateTime` between now and 1 day ago will be applied. */
+    dateTimeFilter: Maybe<ReadonlyArray<TaskDateTimeFilter>>;
+  }
   export interface TasksJobArgs {
     /** Specify a list of job status strings to filter by status */
     status: Maybe<ReadonlyArray<TaskStatus>>;
     /** Provide an offset to skip to a certain element in the result, for paging. */
-    offset: Maybe<number>;
+    offset: number;
     /** Maximum number of results to retrieve in this query */
     limit: number;
     /** Specify an ID to retrieve a single specific task */
@@ -8300,9 +9200,26 @@ declare module 'veritone-types' {
 
     hasSourceAsset: Maybe<boolean>;
   }
+  export interface EnginesEngineCategoryArgs {
+    offset: number;
+
+    limit: number;
+    /** Filters for engine attributes */
+    filter: Maybe<EngineFilter>;
+    /** Provide a list of EngineSortField to sort by. */
+    orderBy: Maybe<ReadonlyArray<Maybe<EngineSortField>>>;
+  }
   export interface WidgetsCollectionArgs {
     /** Provide an offset to skip to a certain element in the result, for paging. */
-    offset: Maybe<number>;
+    offset: number;
+    /** Maximum number of results to retrieve in this query; page size */
+    limit: number;
+
+    id: Maybe<string>;
+  }
+  export interface MentionsCollectionArgs {
+    /** Provide an offset to skip to a certain element in the result, for paging. */
+    offset: number;
     /** Maximum number of results to retrieve in this query; page size */
     limit: number;
 
@@ -8328,7 +9245,7 @@ declare module 'veritone-types' {
 
     name: Maybe<string>;
 
-    offset: Maybe<number>;
+    offset: number;
 
     limit: number;
 
@@ -8346,7 +9263,7 @@ declare module 'veritone-types' {
 
     identifierTypeId: Maybe<string>;
 
-    offset: Maybe<number>;
+    offset: number;
 
     limit: number;
   }
@@ -8383,6 +9300,10 @@ declare module 'veritone-types' {
   export interface UpdateAssetMutationArgs {
     /** Fields needed to update an asset. */
     input: UpdateAsset;
+  }
+  export interface AddMediaSegmentMutationArgs {
+    /** Fields necesary to create the segment. */
+    input: AddMediaSegment;
   }
   export interface RequestCloneMutationArgs {
     /** Fields needed to request a new clone job. */
@@ -8449,6 +9370,9 @@ declare module 'veritone-types' {
   export interface UpdateApplicationMutationArgs {
     /** Fields required to update a custom application. */
     input: Maybe<UpdateApplication>;
+  }
+  export interface UpdateApplicationComponentMutationArgs {
+    input: UpdateApplicationComponent;
   }
   export interface BulkDeleteContextMenuExtensionsMutationArgs {
     input: Maybe<BulkDeleteContextMenuExtensions>;
@@ -8563,16 +9487,6 @@ declare module 'veritone-types' {
     /** Fields required to apply a engine workflow step */
     input: Maybe<EngineWorkflow>;
   }
-  export interface CreateIngestionConfigurationMutationArgs {
-    input: Maybe<CreateIngestionConfiguration>;
-  }
-  export interface UpdateIngestionConfigurationMutationArgs {
-    input: Maybe<UpdateIngestionConfiguration>;
-  }
-  export interface DeleteIngestionConfigurationMutationArgs {
-    /** ID of the ingestion configuration to delete */
-    id: string;
-  }
   export interface CreateWidgetMutationArgs {
     /** Fields needed to create a new widget */
     input: Maybe<CreateWidget>;
@@ -8641,7 +9555,6 @@ declare module 'veritone-types' {
     input: Maybe<UpdateCollection>;
   }
   export interface DeleteCollectionMutationArgs {
-    /** @deprecated(reason: "folderId has been renamed to id. Use id.") */
     folderId: Maybe<string>;
     /** Supply the ID of the folder or collection to delete */
     id: Maybe<string>;
@@ -8649,6 +9562,17 @@ declare module 'veritone-types' {
   export interface ShareCollectionMutationArgs {
     /** Fields needed to share a collection */
     input: Maybe<ShareCollection>;
+  }
+  export interface UpdateSharedCollectionMentionsMutationArgs {
+    /** ID of the shared collection to update */
+    shareId: string;
+    /** List of mentionIds to add or remove */
+    mentionIds: Maybe<ReadonlyArray<string>>;
+    /** Indicates whether or not the mentions are to be added or deleted */
+    type: SharedCollectionUpdateType;
+  }
+  export interface UpdateSharedCollectionHistoryMutationArgs {
+    input: Maybe<UpdateSharedCollectionHistory>;
   }
   export interface ShareMentionFromCollectionMutationArgs {
     /** Fields needed to share a mention */
@@ -8663,6 +9587,14 @@ declare module 'veritone-types' {
   export interface CreateCollectionMentionMutationArgs {
     /** Fields needed to add a mention to a collection */
     input: Maybe<CollectionMentionInput>;
+  }
+  export interface CreateCollectionMentionsMutationArgs {
+    /** Fields needed to add mentions to a collection */
+    input: Maybe<CreateCollectionMentions>;
+  }
+  export interface UpdateCollectionMentionMutationArgs {
+    /** Fields needed to add mentions to a collection */
+    input: UpdateCollectionMention;
   }
   export interface DeleteCollectionMentionMutationArgs {
     /** Fields needed to delete a mention from a collection */
@@ -8727,6 +9659,9 @@ declare module 'veritone-types' {
   }
   export interface UpdateMentionMutationArgs {
     input: UpdateMention;
+  }
+  export interface UpdateMentionsMutationArgs {
+    input: UpdateMentions;
   }
   export interface CreateRootFoldersMutationArgs {
     /** The type of root folder to create */
@@ -8870,7 +9805,7 @@ declare module 'veritone-types' {
 
     orgId: string;
 
-    generateAuthToken: Maybe<boolean>;
+    generateAuthToken: boolean;
   }
   export interface StopWorkflowRuntimeMutationArgs {
     workflowRuntimeId: string;
@@ -8880,6 +9815,9 @@ declare module 'veritone-types' {
   }
   export interface UpdateProcessTemplateMutationArgs {
     input: UpdateProcessTemplate;
+  }
+  export interface DeleteProcessTemplateMutationArgs {
+    id: string;
   }
   export interface CreateMentionExportRequestMutationArgs {
     /** Input data required to create the export request */
@@ -8900,6 +9838,28 @@ declare module 'veritone-types' {
   export interface EmitSystemEventMutationArgs {
     /** Data required to create the event */
     input: EmitSystemEvent;
+  }
+  export interface EmitAuditEventMutationArgs {
+    input: EmitAuditEvent;
+  }
+  export interface CreateContextMenuExtensionMutationArgs {
+    input: CreateContextMenuExtension;
+  }
+  export interface UpdateContextMenuExtensionMutationArgs {
+    input: UpdateContextMenuExtension;
+  }
+  export interface DeleteContextMenuExtensionMutationArgs {
+    input: DeleteContextMenuExtension;
+  }
+  export interface SetOrganizationIntegrationConfigMutationArgs {
+    input: SetOrganizationIntegrationConfig;
+  }
+  export interface DeleteOrganizationIntegrationConfigMutationArgs {
+    input: DeleteOrganizationIntegrationConfig;
+  }
+  export interface UpdateUserStatusMutationArgs {
+    /** Data required to create the event */
+    input: UpdateUserStatus;
   }
   export interface CreateClusterMutationArgs {
     input: CreateCluster;
@@ -9013,6 +9973,15 @@ declare module 'veritone-types' {
   }
   export interface UpdateBundleStatusAsClusterMutationArgs {
     input: Maybe<UpdateBundleStatusAsCluster>;
+  }
+  export interface PauseClusterNodeMutationArgs {
+    input: PauseClusterNode;
+  }
+  export interface UnpauseClusterNodeMutationArgs {
+    input: UnpauseClusterNode;
+  }
+  export interface UpdateClusterStateMutationArgs {
+    input: UpdateClusterState;
   }
   export interface AssetIdMapCloneDataArgs {
     /** Provide an ID to retrieve mappings for specific old asset. */
