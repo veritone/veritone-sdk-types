@@ -6,8 +6,8 @@ declare module 'veritone-redux-common/stores' {
 
   export interface AppStore<C = {}> {
     readonly [modules.auth.namespace]: AuthState;
-    readonly [modules.config.namespace]: ConfigState;
-    readonly [modules.confirmation.namespace]: ConfirmationState<C>;
+    readonly [modules.config.namespace]: ConfigState<C>;
+    readonly [modules.confirmation.namespace]: ConfirmationState;
     readonly [modules.engine.namespace]: EngineState;
     readonly [modules.uiState.namespace]: UiState;
     readonly [modules.user.namespace]: UserState;
@@ -50,9 +50,13 @@ declare module 'veritone-redux-common/stores' {
     readonly enabledApps: ReadonlyArray<Application>;
   }
 
-  type ConfigStateExt = Record<string, string | number | boolean | undefined | ConfigStateExt>;
+  export type ConfigState<C extends ConfigStateExt = {}> = BaseConfigState & C;
 
-  export interface ConfigState<KV extends ConfigStateExt = {}> {
+  interface ConfigStateExt {
+    [key: string]: string | number | boolean | undefined | ConfigStateExt;
+  }
+
+  export interface BaseConfigState {
     readonly nodeEnv: string;
     readonly taskTablePartitionActiveDate: string;
     readonly jobTablePartitionActiveDate: string;
