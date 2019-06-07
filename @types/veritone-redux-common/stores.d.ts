@@ -4,10 +4,10 @@ declare module 'veritone-redux-common/stores' {
   import { modules } from 'veritone-redux-common';
   import { User } from 'veritone-redux-common/models';
 
-  export interface AppStore {
+  export interface AppStore<C = {}> {
     readonly [modules.auth.namespace]: AuthState;
-    readonly [modules.config.namespace]: Partial<ConfigState>;
-    readonly [modules.confirmation.namespace]: ConfirmationState;
+    readonly [modules.config.namespace]: ConfigState;
+    readonly [modules.confirmation.namespace]: ConfirmationState<C>;
     readonly [modules.engine.namespace]: EngineState;
     readonly [modules.uiState.namespace]: UiState;
     readonly [modules.user.namespace]: UserState;

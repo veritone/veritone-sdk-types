@@ -5,15 +5,15 @@ declare module 'veritone-redux-common' {
   export namespace modules {
     export namespace config {
       type Namespace = 'config';
-      type ConfigStoreSlice = Pick<AppStore, Namespace>;
+      type ConfigStoreSlice<C> = Pick<AppStore<C>, Namespace>;
 
-      const reducer: Reducer<ConfigState>;
+      const reducer: Reducer<ConfigState<any>>;
       const namespace: Namespace;
 
       const SET_CONFIG = 'vtn/config/SET_CONFIG';
 
-      function getConfig(state: ConfigStoreSlice): ConfigState;
-      function setConfig(config: ConfigState): Action<typeof SET_CONFIG> & { payload: ConfigState };
+      function getConfig<C>(state: ConfigStoreSlice<C>): ConfigState<C>;
+      function setConfig<C>(config: ConfigState<C>): Action<typeof SET_CONFIG> & { payload: ConfigState<C> };
     }
   }
 }
