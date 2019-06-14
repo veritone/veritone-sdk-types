@@ -3,7 +3,7 @@
  */
 declare module 'veritone-redux-common' {
   import { Reducer } from 'react';
-  import { Middleware } from 'redux';
+  import { AnyAction, Action, Middleware } from 'redux';
   import { GetContextEffect } from 'redux-saga/effects';
   import { CallApiRequest, ApiCallingAction } from 'veritone-redux-common/models';
 
@@ -15,7 +15,7 @@ declare module 'veritone-redux-common' {
       S = any,
       V extends Record<string, any> = {},
       R = any
-    >(req: CallApiRequest<T1, T2, T3, S, V>): Promise<R | undefined>;
+    >(req: CallApiRequest<T1, T2, T3, S, V>): Promise<R>;
 
     function fetchGraphQLApi<
       T1 extends string,
@@ -24,9 +24,13 @@ declare module 'veritone-redux-common' {
       S = any,
       V extends Record<string, any> = {},
       R = any
-    >(req: CallApiRequest<T1, T2, T3, S, V>): Promise<R | undefined>;
+    >(req: CallApiRequest<T1, T2, T3, S, V>): Promise<R>;
 
-    interface FsaAction<P = any, M = any> extends Action { payload: P, meta: M };
+    interface FsaAction<P = unknown, M = unknown> extends AnyAction, Action {
+      type: string;
+      payload: P;
+      meta: M;
+    }
 
     function createReducer<S>(initialState: S, handlers: Record<string, Reducer<S, FsaAction>>): Reducer<S, FsaAction>;
     function reduceReducers<S>(...reducers: Array<Reducer<S, FsaAction>>): Reducer<S, FsaAction>;
